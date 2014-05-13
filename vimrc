@@ -1,22 +1,25 @@
-scriptencoding utf-8
 " my custom vimrc - should work for all systems
-" TODO
-"
-" console vim sometimes behaves weird - duplicates lines and stuff
-" - how can that be changed? try to reproduce!
-"
-" line folding - auto line break pisses me off - should be changed
-"
-" vim-latex fixes for error output and stuff from the ML
-" - should be conditionally included
-"
-" ctags integration
-" - i'm sure there's scripting for that
-"
-" nohls doesn't work for whatever reason
-" - has to be manually entered
-"
-" font for Mac OSX
+
+" vundle
+set nocompatible
+filetype off
+set rtp+=~/.vim/bundle/vundle
+call vundle#rc()
+Plugin 'gmarik/vundle'
+
+" vundle packages
+Plugin 'tpope/vim-fugitive'
+Bundle 'Valloric/YouCompleteMe'
+Bundle 'bling/vim-airline'
+Bundle 'scrooloose/nerdtree'
+Plugin 'Mizuchi/STL-Syntax'
+Bundle 'josephcc/vim-lfg-highlight'
+Bundle 'a.vim'
+Bundle 'taglist.vim'
+Bundle 'majutsushi/tagbar'
+Bundle 'altercation/vim-colors-solarized'
+
+filetype plugin indent on
 
 if has("win32") || has("win16")
     let osys="mswin"
@@ -31,16 +34,20 @@ else
     let osys=system('uname -s')
 endif
 
-if osys=="Linux"
-    set runtimepath+=/usr/share/vim/addons
-endif
-
 " terminal
-
 if (&term =~ "xterm") && (&termencoding == "")
     set termencoding=utf-8
 endif
 
+" jump to last edited position
+" see :help last-position-jump
+if has("autocmd")
+    au BufReadPost *
+                \ if line("'\"") > 0 && line("'\"") <= line("$") |
+                \   exe "normal g'\"" |
+                \   exe "normal zz" |
+                \ endif
+endif
 
 if &term =~ "xterm"
     " xterm titles
@@ -54,9 +61,7 @@ if &term =~ "xterm"
     endif
 endif
 
-
 " settings
-
 set nocompatible
 set viminfo='1000,f1,:1000,/1000
 set history=500
@@ -82,24 +87,16 @@ else
     set infercase
 endif
 
-""""""""""""""""""""""""""""""""""""""""""""
-" spelling for latex files
-"
-""""""""""""""""""""""""""""""""""""""""""""
-
+" highlight column 80 for cpp files
+" set file subtype to doxygen
 if has("autocmd")
-    autocmd BufEnter *
-                \ if &filetype == "latex" |
-                \   set spell |
-                \ else |
-                \   set nospell |
-                \ endif
+    autocmd BufRead,BufNewFile *.h,*.cpp set colorcolumn=80
+    autocmd BufRead,BufNewFile *.h,*.cpp set filetype=cpp.doxygen
+    autocmd BufRead,BufNewFile *.h,*.cpp nnoremap <F5> :make<CR>
 endif
-
 
 " show full tags for auto completion
 set showfulltag
-
 set lazyredraw
 
 " no error noises
@@ -121,8 +118,6 @@ set wildmenu
 set wildignore+=*.o,*~,*.lo,*.exe,*.com,*.pdf,*.ps,*.dvi
 set suffixes+=.in,.a
 
-set winminheight=1
-
 if has("syntax")
     syntax on
 endif
@@ -135,13 +130,8 @@ if has("win32")
     set guifont=Anonymous_Pro:h11
     "set guifont=Monaco:h10
 else
-    if has("gui_kde")
-        set guifont=Terminus/12/-1/5/50/0/0/0/0/0
-    elseif has("gui_gtk")
-        set guifont=DejaVu\ Sans\ Mono\ 12
-    elseif has("gui_running")
-        set guifont=-xos4-terminus-medium-r-normal--12-140-72-72-c-80-iso8859-1
-    endif
+    set guifont=Source\ Code\ Pro\ for\ Powerline\ Medium\ 12
+    "set guifont=DejaVu\ Sans\ Mono\ 12
 endif
 
 " Toolbar & scrollbars off
@@ -168,28 +158,20 @@ if has("eval")
     endfun
 
     if has('gui')
-        "call LoadColorScheme("elflord")
-        call LoadColorScheme("inkpot:night:rainbow_night:darkblue:elflord")
+        call LoadColorScheme("solarized:inkpot:night:rainbow_night:darkblue:elflord")
     else
         if has("autocmd")
-            " code
             autocmd VimEnter *
                         \ if &t_Co == 88 || &t_Co == 256 |
                         \   call LoadColorScheme("inkpot:darkblue:elflord") |
-                        "\   call LoadColorScheme("elflord") |
                         \ else |
                         \   call LoadColorScheme("darkblue:elflord") |
-                        "\   call LoadColorScheme("elflord") |
                         \ endif
-            " freitext
-            " call LoadColorScheme("morning")
         else
             if &t_Co == 88 || &t_Co == 256
                 call LoadColorScheme("inkpot:darkblue:elflord")
-                "call LoadColorScheme("elflord")
             else
                 call LoadColorScheme("darkblue:elflord")
-                "call LoadColorScheme("elflord")
             endif
         endif
     endif
@@ -239,22 +221,22 @@ nmap <F8> :TagbarToggle<CR>
 "set laststatus=2
 "set statusline=
 " buffer number
-"set statusline+=%2*%-3.3n%0*\ 
+"set statusline+=%2*%-3.3n%0*\
 "" file name
-"set statusline+=%f\ 
+"set statusline+=%f\
 "" scm ...
 "" flags
 "set statusline+=%h%1*%m%r%w%0*
 "" filetype
-"set statusline+=\[%{strlen(&ft)?&ft:'none'}\ 
+"set statusline+=\[%{strlen(&ft)?&ft:'none'}\
 "" encoding
-"set statusline+=%{&encoding}\ 
+"set statusline+=%{&encoding}\
 "" file format
 "set statusline+=%{&fileformat}]
 "" right align
 "set statusline+=%=
 "" current char
-"set statusline+=%2*0x%-8B\ 
+"set statusline+=%2*0x%-8B\
 "" offset
 "set statusline+=%-14.(%l,%c%V%)\ %<%P
 
@@ -283,7 +265,7 @@ end
 
 " include $HOME in cdpath
 if has("file_in_path")
-    let &cdpath=",".expand("$HOME").','.expand("$HOME").'/work'
+    let &cdpath=",".expand("$HOME").','.expand("$HOME").'/src'
 endif
 
 " for include paths
@@ -291,7 +273,6 @@ set path+=src/
 let &inc.=' ["<]'
 
 " show tabs and trailing whitespace
-
 if (&termencoding == "utf-8") || has("gui_running")
     if v:version >= 700
         if has("gui_running")
@@ -313,20 +294,24 @@ endif
 
 set fillchars=fold:-
 
-
-" no tab highlighting for vim outliner files
-if has("autocmd")
-    autocmd BufEnter *
-                \ if &filetype == "vo_base" |
-                \   set nolist |
-                \ endif
-endif
-
 " winmanager.vim settings
 if filereadable(expand("$VIM/vimfiles/plugin/winmanager.vim"))
     let g:winManagerWindowLayout = 'FileExplorer,TagsExplorer'
 endif
 
+""""""""""""""""""""""""""""""""""""""""""""
+" spelling for latex files
+"
+""""""""""""""""""""""""""""""""""""""""""""
+
+if has("autocmd")
+    autocmd BufEnter *
+                \ if &filetype == "latex" |
+                \   set spell |
+                \ else |
+                \   set nospell |
+                \ endif
+endif
 " vim-latex settings
 if filereadable(expand("$VIM/vimfiles/ftplugin/tex_latexSuite.vim")) || filereadable(expand("$VIM/addons/ftplugin/tex_latexSuite.vim"))
     let g:Tex_DefaultTargetFormat = 'pdf'
@@ -377,16 +362,25 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " vim-airline
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" always show status bar
+set laststatus=2
 " show buffers in airline
 let g:airline#extensions#tabline#enabled = 1
-
+" powerline fonts
+let g:airline_powerline_fonts = 1
+" powerline symbols
+if !exists('g:airline_symbols')
+    let g:airline_symbols = {}
+endif
+let g:airline_symbols.space = "\ua0"
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " completion
 set dictionary=/usr/share/dict/words
 
 " turn off existing hlsearch
 if has("autocmd")
-    autocmd VimEnter * nohls
+    autocmd BufEnter * nohls
 endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -394,6 +388,7 @@ endif
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " docx converter
+" TODO doesn't work
 if has("autocmd")
     if filereadable("/usr/local/bin/docx2txt.pl")
         autocmd BufReadPre *.docx set ro
@@ -401,13 +396,9 @@ if has("autocmd")
     endif
 endif
 
-" use C++11 syntax for .cpp files
-"if has("autocmd")
-    "autocmd BufNewFile,BufRead *.cpp set syntax=cpp11
-"endif
-
 " assume out of source build if CMakeLists.txt is
 " present in the current directory
+" TODO needs to descend farther than just one directory
 if has("autocmd")
     autocmd BufNewFile,BufRead *
                 \ if filereadable("./CMakeLists.txt") |
@@ -424,7 +415,6 @@ if has("ctags")
     " open definition in vert split
     map <C-]> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
 endif
-
 if has("cscope")
     set csto=0
     set cst
@@ -435,6 +425,26 @@ if has("cscope")
         cs add $CSCOPE_DB
     endif
 endif
+
+" buffer mappings because it annoys me to have to type <ESC>:bp<CR>
+" \l            list buffers
+" \b \f \g      back/forward/last
+" \1 \2 \3      buffer 1/2/3
+" TODO \b takes way more time than \f, idk why
+nnoremap <Leader>l :ls<CR>
+nnoremap <Leader>b :bp<CR>
+nnoremap <Leader>f :bn<CR>
+nnoremap <Leader>g :e#<CR>
+nnoremap <Leader>1 :1b<CR>
+nnoremap <Leader>2 :2b<CR>
+nnoremap <Leader>3 :3b<CR>
+nnoremap <Leader>4 :4b<CR>
+nnoremap <Leader>5 :5b<CR>
+nnoremap <Leader>6 :6b<CR>
+nnoremap <Leader>7 :7b<CR>
+nnoremap <Leader>8 :8b<CR>
+nnoremap <Leader>9 :9b<CR>
+nnoremap <Leader>0 :10b<CR>
 
 " auto cd into the directory of the file
 set autochdir
