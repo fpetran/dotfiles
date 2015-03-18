@@ -9,6 +9,10 @@ Plugin 'gmarik/vundle'
 
 " vundle packages
 Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-dispatch'
+Plugin 'tpope/vim-speeddating'
+Plugin 'szw/vim-g'
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'bling/vim-airline'
 Bundle 'scrooloose/nerdtree'
@@ -18,6 +22,12 @@ Bundle 'a.vim'
 Bundle 'taglist.vim'
 Bundle 'majutsushi/tagbar'
 Bundle 'altercation/vim-colors-solarized'
+Bundle 'chrisbra/csv.vim'
+Plugin 'bronson/vim-trailing-whitespace'
+Plugin 'airblade/vim-gitgutter'
+Plugin 'SirVer/ultisnips'
+Plugin 'honza/vim-snippets'
+Plugin 'ggreer/the_silver_searcher'
 
 filetype plugin indent on
 
@@ -210,36 +220,17 @@ if filereadable(expand("$VIM/vimfiles/plugin/securemodelines.vim"))
     let g:secure_modelines_modelines = 15
 endif
 
+" ultisnips ===========================================================
+let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsJumpForwardTrigger="<c-b>"
+let g:UltiSnipsJumpBackwardTrigger="<c-z>"
+let g:UltiSnipsEditSplit="vertical"
+
 " tagbar.vim
 " TODO add conditional
 nmap <F8> :TagbarToggle<CR>
 
-"----------------------------------------
-" status bar stuff
-" DEPRECATED: I use vim-airline now
-"----------------------------------------
-"set laststatus=2
-"set statusline=
-" buffer number
-"set statusline+=%2*%-3.3n%0*\
-"" file name
-"set statusline+=%f\
-"" scm ...
-"" flags
-"set statusline+=%h%1*%m%r%w%0*
-"" filetype
-"set statusline+=\[%{strlen(&ft)?&ft:'none'}\
-"" encoding
-"set statusline+=%{&encoding}\
-"" file format
-"set statusline+=%{&fileformat}]
-"" right align
-"set statusline+=%=
-"" current char
-"set statusline+=%2*0x%-8B\
-"" offset
-"set statusline+=%-14.(%l,%c%V%)\ %<%P
-
+" title bar ===========================================================
 if has('title') && (has('gui_running') || &title)
     set titlestring=
     " file name
@@ -303,7 +294,6 @@ endif
 " spelling for latex files
 "
 """"""""""""""""""""""""""""""""""""""""""""
-
 if has("autocmd")
     autocmd BufEnter *
                 \ if &filetype == "latex" |
@@ -312,16 +302,25 @@ if has("autocmd")
                 \   set nospell |
                 \ endif
 endif
-" vim-latex settings
+" vim-latex settings ==============================================================
 if filereadable(expand("$VIM/vimfiles/ftplugin/tex_latexSuite.vim")) || filereadable(expand("$VIM/addons/ftplugin/tex_latexSuite.vim"))
     let g:Tex_DefaultTargetFormat = 'pdf'
     " auto reload logfiles for vim-latex
     if has("autocmd")
         autocmd BufRead *.log set ar
     endif
-    " mapping for beamer frames in vim-latex
+    " various IMAPS for vim-latex
     if has("autocmd")
-        autocmd BufNewFile,BufRead *.tex call IMAP('BFA', "\\begin{frame}{<++>}\<CR><++>\<CR>\\end{frame}", 'tex')
+        " beamer frame
+        autocmd BufNewFile,BufRead *.tex call IMAP('BFA', "\\begin{frame}{<++>}\<CR><++>\<CR>\\end{frame}<++>", 'tex')
+        " beamer frame with automatic stops, idk if this works
+        autocmd BufNewFile,BufRead *.tex call IMAP('BFS', "\\begin{frame}[<+->]{<++>}\<CR><++>\<CR>\\end{frame}<++>", 'tex')
+        " block
+        autocmd BufNewFile,BufRead *.tex call IMAP('BBA', "\\begin{block}{<++>}\<CR><++>\<CR>\\end{block}<++>", 'tex')
+        " covington example
+        autocmd BufNewFile,BufRead *.tex call IMAP('EXE', "\\begin{example}\<CR><++>\<CR>\\end{example}<++>", 'tex')
+        " covington examples
+        autocmd BufNewFile,BufRead *.tex call IMAP('EXS', "\\begin{examples}\<CR>\\item <++>\<CR>\\end{examples}<++>", 'tex')
     endif
     " don't check spelling in comments
     let g:tex_comment_nospell = 1
@@ -401,10 +400,30 @@ endif
 " TODO needs to descend farther than just one directory
 if has("autocmd")
     autocmd BufNewFile,BufRead *
-                \ if filereadable("./CMakeLists.txt") |
-                \   set makeprg=make\ -C\ ../build    |
+                \ if filereadable("./CMakeLists.txt")   |
+                \   let builddir=findfile('build', ';') |
+                \   let buildcmd='make -C ' . builddir  |
+                \   let &makeprg=buildcmd               |
                 \ endif
 endif
+
+fun! g:BuildOOS()
+    let toplevelpath = FindTopLevelProjectDir()
+    let builddir = toplevelpath . "build/"
+    :execute 'make -C ' . builddir
+endfun
+
+fun! FindTopLevelProjectDir()
+    let isittopdir = finddir('.git')
+    if isittopdir ==? ".git"
+        return getcwd()
+    endif
+    let gitdir = finddir('.git', ';')
+    let gitdirsplit = split(gitdir, '/')
+    let toplevelpath = '/' . join(gitdirsplit[:-2], '/')
+    return toplevelpath
+endfun
+nnoremap <F4> :call g:BuildOOS()
 
 " ctags related stuff
 if has("ctags")
