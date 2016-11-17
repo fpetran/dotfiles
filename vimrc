@@ -1,13 +1,14 @@
+" vim: fdm=marker
 " my custom vimrc - should work for all systems
 
-" vundle
+" {{{ vundle
 set nocompatible
 filetype off
 set rtp+=~/.vim/bundle/vundle
 call vundle#rc()
 Plugin 'gmarik/vundle'
-
-" vundle packages
+" }}}
+" {{{ vundle packages
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-surround'
 Plugin 'tpope/vim-dispatch'
@@ -15,7 +16,6 @@ Plugin 'tpope/vim-speeddating'
 Plugin 'szw/vim-g'
 Bundle 'Valloric/YouCompleteMe'
 Bundle 'bling/vim-airline'
-Bundle 'scrooloose/nerdtree'
 Plugin 'Mizuchi/STL-Syntax'
 Bundle 'josephcc/vim-lfg-highlight'
 Bundle 'a.vim'
@@ -28,9 +28,27 @@ Plugin 'airblade/vim-gitgutter'
 Plugin 'SirVer/ultisnips'
 Plugin 'honza/vim-snippets'
 Plugin 'ggreer/the_silver_searcher'
+Plugin 'rking/ag.vim'
+Plugin 'scrooloose/syntastic'
+" }}}
+
+let g:agprg="/home/petran/.vim/bundle/the_silver_searcher/ag"
+
+" something in taglist causes eclim to start for non-java, either
+" of the lines below fixes that
+let g:EclimTaglistEnabled = 0
+" let g:taglisttoo_disabled = 1
 
 filetype plugin indent on
 
+" {{{ remove arrow keys
+noremap <Up> <NOP>
+noremap <Down> <NOP>
+noremap <Left> <NOP>
+noremap <Right> <NOP>
+" }}}
+
+" {{{ OS recognition
 if has("win32") || has("win16")
     let osys="mswin"
     behave mswin
@@ -43,13 +61,14 @@ else
     " string. therefore, the two previous cases are necessary
     let osys=system('uname -s')
 endif
+" }}}
 
 " terminal
 if (&term =~ "xterm") && (&termencoding == "")
     set termencoding=utf-8
 endif
 
-" jump to last edited position
+" {{{ jump to last edited position
 " see :help last-position-jump
 if has("autocmd")
     au BufReadPost *
@@ -57,6 +76,14 @@ if has("autocmd")
                 \   exe "normal g'\"" |
                 \   exe "normal zz" |
                 \ endif
+endif
+" }}}
+
+" hybrid line numbering
+" only works in > 7.4
+if v:version >= 704
+    set relativenumber
+    set number
 endif
 
 if &term =~ "xterm"
@@ -71,7 +98,7 @@ if &term =~ "xterm"
     endif
 endif
 
-" settings
+" {{{ general settings
 set nocompatible
 set viminfo='1000,f1,:1000,/1000
 set history=500
@@ -81,8 +108,50 @@ set showcmd
 set showmatch
 set hlsearch
 set incsearch
-
 set maxmempattern=2000000
+" auto cd into the directory of the file
+set autochdir
+" no error noises
+set noerrorbells
+set visualbell t_vb=
+" scrolling
+set scrolloff=3
+set sidescrolloff=2
+if has("autocmd")
+    autocmd GUIEnter * set visualbell t_vb=
+endif
+" show full tags for auto completion
+set showfulltag
+set lazyredraw
+set whichwrap+=<,>,[,]
+
+" tab completion
+set wildmenu
+" ignore these for completion
+set wildignore+=*.o,*~,*.lo,*.exe,*.com,*.pdf,*.ps,*.dvi
+set suffixes+=.in,.a
+
+if has("syntax")
+    syntax on
+endif
+
+set virtualedit=block,onemore
+" Toolbar & scrollbars off
+if has('gui')
+    set guioptions-=T
+    set guioptions-=r
+    set guioptions-=R
+endif
+" indenting
+set shiftwidth=4
+set autoindent
+set smartindent
+" tab to ws conversion
+set softtabstop=4
+set expandtab
+set tw=120
+
+" }}}
 
 " case sensitivity for cpp files
 if has("autocmd")
@@ -105,36 +174,7 @@ if has("autocmd")
     autocmd BufRead,BufNewFile *.h,*.cpp nnoremap <F5> :make<CR>
 endif
 
-" show full tags for auto completion
-set showfulltag
-set lazyredraw
-
-" no error noises
-set noerrorbells
-set visualbell t_vb=
-if has("autocmd")
-    autocmd GUIEnter * set visualbell t_vb=
-endif
-
-" scrolling
-set scrolloff=3
-set sidescrolloff=2
-
-set whichwrap+=<,>,[,]
-
-" tab completion
-set wildmenu
-" ignore these for completion
-set wildignore+=*.o,*~,*.lo,*.exe,*.com,*.pdf,*.ps,*.dvi
-set suffixes+=.in,.a
-
-if has("syntax")
-    syntax on
-endif
-
-set virtualedit=block,onemore
-
-" fonts
+" {{{ fonts
 if has("win32")
     " set guifont=Lucida\ Console
     set guifont=Anonymous_Pro:h11
@@ -143,16 +183,11 @@ else
     set guifont=Source\ Code\ Pro\ for\ Powerline\ Medium\ 12
     "set guifont=DejaVu\ Sans\ Mono\ 12
 endif
-
-" Toolbar & scrollbars off
-if has('gui')
-    set guioptions-=T
-    set guioptions-=r
-    set guioptions-=R
-endif
+" }}}
 
 
-" colorscheme
+
+" {{{ colorscheme
 if has("eval")
     fun! LoadColorScheme(schemes)
         let l:schemes = a:schemes . ":"
@@ -186,16 +221,7 @@ if has("eval")
         endif
     endif
 endif
-
-" indenting
-set shiftwidth=4
-set autoindent
-set smartindent
-
-" tab to ws conversion
-set softtabstop=4
-set expandtab
-set tw=120
+" }}}
 
 " folds
 if has("folding")
@@ -221,7 +247,7 @@ if filereadable(expand("$VIM/vimfiles/plugin/securemodelines.vim"))
 endif
 
 " ultisnips ===========================================================
-let g:UltiSnipsExpandTrigger="<tab>"
+let g:UltiSnipsExpandTrigger="<c-tab>"
 let g:UltiSnipsJumpForwardTrigger="<c-b>"
 let g:UltiSnipsJumpBackwardTrigger="<c-z>"
 let g:UltiSnipsEditSplit="vertical"
@@ -302,7 +328,7 @@ if has("autocmd")
                 \   set nospell |
                 \ endif
 endif
-" vim-latex settings ==============================================================
+" {{{ vim-latex settings
 if filereadable(expand("$VIM/vimfiles/ftplugin/tex_latexSuite.vim")) || filereadable(expand("$VIM/addons/ftplugin/tex_latexSuite.vim"))
     let g:Tex_DefaultTargetFormat = 'pdf'
     " auto reload logfiles for vim-latex
@@ -357,10 +383,9 @@ if filereadable(expand("$VIM/vimfiles/ftplugin/tex_latexSuite.vim")) || fileread
         " TODO
     endif
 endif
+" }}}
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" vim-airline
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" {{{ vim-airline
 " always show status bar
 set laststatus=2
 " show buffers in airline
@@ -372,7 +397,7 @@ if !exists('g:airline_symbols')
     let g:airline_symbols = {}
 endif
 let g:airline_symbols.space = "\ua0"
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
 
 " completion
 set dictionary=/usr/share/dict/words
@@ -398,21 +423,21 @@ endif
 " assume out of source build if CMakeLists.txt is
 " present in the current directory
 " TODO needs to descend farther than just one directory
-if has("autocmd")
-    autocmd BufNewFile,BufRead *
-                \ if filereadable("./CMakeLists.txt")   |
-                \   let builddir=findfile('build', ';') |
-                \   let buildcmd='make -C ' . builddir  |
-                \   let &makeprg=buildcmd               |
-                \ endif
-endif
+"if has("autocmd")
+    "autocmd BufNewFile,BufRead *
+                "\ if filereadable("./CMakeLists.txt")   |
+                "\   let builddir=findfile('build', ';') |
+                "\   let buildcmd='make -C ' . builddir  |
+                "\   let &makeprg=buildcmd               |
+                "\ endif
+"endif
 
+" OOS builds for git projects
 fun! g:BuildOOS()
     let toplevelpath = FindTopLevelProjectDir()
-    let builddir = toplevelpath . "build/"
+    let builddir = toplevelpath . "/build/"
     :execute 'make -C ' . builddir
 endfun
-
 fun! FindTopLevelProjectDir()
     let isittopdir = finddir('.git')
     if isittopdir ==? ".git"
@@ -420,29 +445,26 @@ fun! FindTopLevelProjectDir()
     endif
     let gitdir = finddir('.git', ';')
     let gitdirsplit = split(gitdir, '/')
-    let toplevelpath = '/' . join(gitdirsplit[:-2], '/')
+    let toplevelpath = '/' . join(gitdirsplit[:-3], '/')
     return toplevelpath
 endfun
-nnoremap <F4> :call g:BuildOOS()
+nnoremap <F4> :call g:BuildOOS()<CR>
 
 " ctags related stuff
-if has("ctags")
-    " look up til root for tags files
-    set tags=./tags;/
-    " open definition in new tab
-    map <C-\> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
-    " open definition in vert split
-    map <C-]> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
-endif
-if has("cscope")
-    set csto=0
-    set cst
-    set nocsverb
-    if filereadable("cscope.out")
-        cs add cscope.out
-    elseif $CSCOPE_DB != ""
-        cs add $CSCOPE_DB
-    endif
+" look up til root for tags files
+set tags=./tags;/
+" open definition in new tab
+map <C-\> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
+" open definition in vert split
+map <C-]> :vsp <CR>:exec("tag ".expand("<cword>"))<CR>
+" cscope
+set csto=0
+set cst
+set nocsverb
+if filereadable("cscope.out")
+    cs add cscope.out
+elseif $CSCOPE_DB != ""
+    cs add $CSCOPE_DB
 endif
 
 " buffer mappings because it annoys me to have to type <ESC>:bp<CR>
@@ -464,9 +486,6 @@ nnoremap <Leader>7 :7b<CR>
 nnoremap <Leader>8 :8b<CR>
 nnoremap <Leader>9 :9b<CR>
 nnoremap <Leader>0 :10b<CR>
-
-" auto cd into the directory of the file
-set autochdir
 
 "-----------------------------------------------------------------------
 " vim: set shiftwidth=4 softtabstop=4 expandtab tw=120                 :
