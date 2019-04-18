@@ -49,6 +49,8 @@ Plug 'tmux-plugins/vim-tmux-focus-events'
 
 Plug 'elzr/vim-json', { 'for': 'json' }
 
+Plug 'lervag/vimtex'
+
 Plug 'rhysd/vim-clang-format'
 Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
 
@@ -64,7 +66,7 @@ endif
 Plug 'Shougo/neosnippet.vim' | Plug 'Shougo/neosnippet-snippets'
 Plug 'w0rp/ale'
 " Plug 'valloric/YouCompleteMe', { 'on': [], 'do' : 'python3 install.py --clang-completer' }
-" Plug 'SirVer/ultisnips', { 'on': [] } | Plug 'honza/vim-snippets'
+" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 " Plug 'ervandew/supertab'
 
 Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
@@ -73,11 +75,11 @@ Plug 'majutsushi/tagbar'
 call plug#end()
 
 " defer loading ycm, ultisnips on first InsertEnter
-augroup load_us_ycm
-    autocmd!
-    autocmd InsertEnter * call plug#load('ultisnips', 'YouCompleteMe')
-                \| autocmd! load_us_ycm
-augroup END
+" augroup load_us_ycm
+"     autocmd!
+"     autocmd InsertEnter * call plug#load('ultisnips', 'YouCompleteMe')
+"                 \| autocmd! load_us_ycm
+" augroup END
 " }}}
 " {{{ colorscheme
 if has('termguicolors')
@@ -151,7 +153,7 @@ set smartcase
 
 set maxmempattern=2000000
 
-set autochdir
+" set autochdir
 set autoread
 
 set noerrorbells
@@ -256,35 +258,41 @@ augroup LanguageClient_config
     au FileType cpp,cpp.doxygen :call LCMappings()
 augroup END
 " }}}
+" {{{ snippets
+" neosnippet
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
+smap <C-k> <Plug>(neosnippet_expand_or_jump)
+xmap <C-k> <Plug>(neosnippet_expand_target)
+" tab
+" smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
+"             \ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+imap <expr><TAB>
+            \ pumvisible() ? "\<C-n>" :
+            \ neosnippet#expandable_or_jumpable() ?
+            \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+" custom snippets
+let g:neosnippet#disable_runtime_snippets = {
+            \ '_': 1
+            \ }
+let g:neosnippet#snippets_directory = '~/.config/nvim/customsnips'
+
+" }}}
 " {{{ IDE functionality (lint, snippets, tags)
-" language client
 " ALE config
 let g:ale_linters = {'cpp': [], 'c': [] } " using languageclient for cpp and c
 let g:ale_cache_executable_check_failures = 1
 let g:airline#extensions#ale#enabled = 1
-
-" make ycm work with ultisnips using supertab
-let g:ycm_key_list_select_completion = [ '<C-n>', '<Down>' ]
-let g:ycm_key_list_previous_completion = [ '<C-p>', '<Up>' ]
-let g:SuperTabDefaultCompletionType = '<C-n>'
-let g:UltiSnipsExpandTrigger = "<tab>"
-let g:UltiSnipsJumpForwardTrigger = "<tab>"
-let g:UltiSnipsJumpBackwardTrigger = "<s-tab>"
-
-" custom snippets
-let g:UltiSnipsSnippetDirectories = [ expand("~/.config/nvim/customsnips") ]
-" let g:neosnippet#snippets_directory = [ expand("~/.config/nvim/customsnips") ]
 
 " gutentags
 set tags=./tags;/
 let g:gutentags_modules = [ 'ctags', 'gtags_cscope' ]
 let g:gutentags_cache_dir = expand('~/.cache/tags')
 " line below is important so keobuilder deps get tagged as well
-let g:gutentags_project_root = [ '.project' ]
+let g:gutentags_project_root = [ '.project', 'compile_commands.json' ]
 let g:gutentags_auto_add_gtags_cscope = 0
-function! GutentagsStatus(...)
-    let w:airline_section_a = '%{gutentags#statusline()}'
-endfunction
+" function! GutentagsStatus(...)
+"     let w:airline_section_a = '%{gutentags#statusline()}'
+" endfunction
 
 " remap of jump to tag for german keyboard
 nnoremap ü <C-]>
@@ -293,7 +301,7 @@ nmap <F8> :TagbarToggle<CR>
 " }}}
 " {{{ completion
 " let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
-let g:ycm_confirm_extra_conf = 0
+" let g:ycm_confirm_extra_conf = 0
 " }}}
 " {{{ tmux related
 " 1 - write current buffer if changed, 2 - :wa
@@ -307,9 +315,19 @@ if has("autocmd")
         autocmd!
         autocmd BufRead,BufNewFile *.h,*.cpp setlocal commentstring=//\ %s " use // for commentary
         autocmd BufRead,BufNewFile *.h,*.cpp set colorcolumn=120          " highlight column
-        autocmd BufRead,BufNewFile *.h,*.cpp set filetype=cpp.doxygen    " set doxygen subtype
+        autocmd BufRead,BufNewFile *.h,*.cpp,*.dox set filetype=cpp.doxygen    " set doxygen subtype
     augroup END
 endif
+
+" alternate-lite for configured files (*.cpp.in)
+" call lh#alternate#register_extension('g', 'h.in', ['cpp.in'])
+" call lh#alternate#register_extension('g', 'cpp.in', ['h.in'])
+" let g:alternates.fts.cpp += ['cpp.in', 'h.in']
+
+" use 6.0 for KEO development
+let g:clang_format#command = 'clang-format-7'
+" let g:clang_format#auto_format_on_insert_leave = 1
+let g:clang_format#detect_style_file = 1
 
 " au BufNewFile,BufRead *.cpp,*.h syn region myCComment start="/\*" end="\*/" fold keepend transparent
 " }}}
