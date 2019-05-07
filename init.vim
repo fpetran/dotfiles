@@ -43,9 +43,12 @@ Plug 'junegunn/fzf.vim'
 Plug 'NLKNguyen/papercolor-theme'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'edkolev/tmuxline.vim'
+
+" tmux
 Plug 'christoomey/vim-tmux-navigator'
 Plug 'tmux-plugins/vim-tmux-focus-events'
+Plug 'tmux-plugins/vim-tmux'
+Plug 'roxma/vim-tmux-clipboard'
 
 Plug 'elzr/vim-json', { 'for': 'json' }
 
@@ -55,19 +58,18 @@ Plug 'rhysd/vim-clang-format'
 Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
 
 Plug 'autozimu/LanguageClient-neovim', { 'branch' : 'next', 'do' : 'bash install.sh' }
-if has ('nvim')
-    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-else
-    Plug 'Shougo/deoplete.nvim'
-    Plug 'roxma/nvim.yarp'
-    Plug 'roxma/vim-hug-neovim-rpc'
-endif
 
-Plug 'Shougo/neosnippet.vim' | Plug 'Shougo/neosnippet-snippets'
+Plug 'roxma/nvim-yarp'
+Plug 'ncm2/ncm2'
+" ncm2 sources
+Plug 'ncm2/ncm2-bufword'
+Plug 'ncm2/ncm2-path'
+Plug 'ncm2/ncm2-ultisnips'
+Plug 'ncm2/ncm2-pyclang'
+Plug 'wellle/tmux-complete.vim'
+
 Plug 'w0rp/ale'
-" Plug 'valloric/YouCompleteMe', { 'on': [], 'do' : 'python3 install.py --clang-completer' }
-" Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
-" Plug 'ervandew/supertab'
+Plug 'SirVer/ultisnips'
 
 Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
 Plug 'majutsushi/tagbar'
@@ -87,6 +89,13 @@ if has('termguicolors')
 endif
 set background=light
 colorscheme PaperColor
+let g:PaperColor_Theme_Options = {
+            \ 'language' : {
+            \   'cpp' : {
+            \      'highlight_standard_library': 1
+            \     }
+            \   }
+            \}
 " }}}
 " {{{ misc settings
 " leader to space
@@ -193,7 +202,6 @@ function! CppDoxyFoldText()
 endfunction
 
 if has("folding")
-    set foldlevelstart=3
     set foldenable
     augroup cpp_fold
         autocmd FileType cpp.doxygen set foldmethod=marker
@@ -214,13 +222,7 @@ let g:airline_symbols.space = "\ua0"
 let g:airline_theme = 'papercolor'
 let g:airline#extensions#tabline#formatter = 'unique_tail'
 " }}}
-" {{{ language client/deoplete
-" deoplete
-let g:deoplete#enable_at_startup = 1
-call deoplete#custom#source('LanguageClient',
-            \ 'min_pattern_length',
-            \ 2)
-
+" {{{ language client
 set hidden " required for renaming, etc.
 let g:LanguageClient_serverCommands = {
             \ 'cpp' : [ 'ccls' ],
@@ -258,26 +260,7 @@ augroup LanguageClient_config
     au FileType cpp,cpp.doxygen :call LCMappings()
 augroup END
 " }}}
-" {{{ snippets
-" neosnippet
-imap <C-k> <Plug>(neosnippet_expand_or_jump)
-smap <C-k> <Plug>(neosnippet_expand_or_jump)
-xmap <C-k> <Plug>(neosnippet_expand_target)
-" tab
-" smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
-"             \ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-imap <expr><TAB>
-            \ pumvisible() ? "\<C-n>" :
-            \ neosnippet#expandable_or_jumpable() ?
-            \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-" custom snippets
-let g:neosnippet#disable_runtime_snippets = {
-            \ '_': 1
-            \ }
-let g:neosnippet#snippets_directory = '~/.config/nvim/customsnips'
-
-" }}}
-" {{{ IDE functionality (lint, snippets, tags)
+" {{{ ale, tags
 " ALE config
 let g:ale_linters = {'cpp': [], 'c': [] } " using languageclient for cpp and c
 let g:ale_cache_executable_check_failures = 1
@@ -299,9 +282,29 @@ nnoremap ü <C-]>
 " map for tagbar
 nmap <F8> :TagbarToggle<CR>
 " }}}
-" {{{ completion
-" let g:ycm_global_ycm_extra_conf = '~/.ycm_extra_conf.py'
-" let g:ycm_confirm_extra_conf = 0
+" {{{ completion, snippets
+" ncm2
+autocmd BufEnter * call ncm2#enable_for_buffer()
+set completeopt=noinsert,menuone,noselect
+
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+
+" ncm2-pyclang
+let g:ncm2_pyclang#library_path = '/usr/lib/llvm-7/lib'
+let g:ncm2_pyclang#database_path = [
+            \ 'compile_commands.json',
+            \ '../compile_commands.json',
+            \ 'build/compile_commands.json',
+            \ '../build/compile_commands.json'
+            \ ]
+" ncm2-ultisnips
+inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
+
+let g:UltiSnipsJumpForwardTrigger = "<c-j>"
+let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
+let g:UltiSnipsRemoveSelectModeMappings = 0
+
+let g:UltiSnipsSnippetDirectories=['customsnips']
 " }}}
 " {{{ tmux related
 " 1 - write current buffer if changed, 2 - :wa
@@ -320,11 +323,23 @@ if has("autocmd")
 endif
 
 " alternate-lite for configured files (*.cpp.in)
-" call lh#alternate#register_extension('g', 'h.in', ['cpp.in'])
-" call lh#alternate#register_extension('g', 'cpp.in', ['h.in'])
-" let g:alternates.fts.cpp += ['cpp.in', 'h.in']
+call lh#alternate#register_extension('g', 'h.in', ['cpp.in'])
+call lh#alternate#register_extension('g', 'cpp.in', ['h.in'])
+let g:alternates.fts.cpp += ['cpp.in', 'h.in']
 
-" use 6.0 for KEO development
+" structure:
+"  <libname>
+"     +-- src/ -> source files
+"     +-- include/<libname>/ -> header files
+if has("autocmd")
+    augroup alternate-searchpath
+        autocmd!
+        autocmd BufRead,BufNewFile *.h let g:alternates.searchpath = 'reg:|include/.\+$|src|'
+        autocmd BufRead,BufNewFile *.cpp let g:alternates.searchpath = 'reg:|\([^/]\+\)/src|\1/include/\1||'
+    augroup END
+endif
+
+" use 7.0 for KEO development
 let g:clang_format#command = 'clang-format-7'
 " let g:clang_format#auto_format_on_insert_leave = 1
 let g:clang_format#detect_style_file = 1
