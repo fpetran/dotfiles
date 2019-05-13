@@ -1,0 +1,70 @@
+snippet copy "KEO Copyright" b
+/*
+ *     Copyright KEO GmbH `date +%Y` - All rights reserved!
+ *
+ *     This software is protected by the inclusion of the above copyright notice.
+ *     This software may not be provided or otherwise made available to, or used
+ *     by, any other person. No title to or ownership of the software is hereby
+ *     transferred. The information contained in this document is considered the
+ *     @b confidential and @b proprietary information of KEO GmbH
+ *     and may not be disclosed or discussed with anyone who is not employed by
+ *     KEO GmbH, unless the individual or company
+ *     - has an express need to know such information, and
+ *     - disclosure of information is subject to the terms of a duly
+ *     executed "Confidentiality and Non-Disclosure Agreement" between
+ *     KEO GmbH and the individual or company.
+ */
+
+endsnippet
+
+snippet headers "KEO header template" b
+/* ****************************************************************************** *
+ *  standard header files                                                         *
+ * ****************************************************************************** */
+
+/* ****************************************************************************** *
+ * KEO header files                                                               *
+ * ****************************************************************************** */
+
+/* ****************************************************************************** *
+ *  project header files                                                          *
+ * ****************************************************************************** */
+
+/* ****************************************************************************** *
+ *  types                                                                         *
+ * ****************************************************************************** */
+
+/* ****************************************************************************** *
+ *  definition                                                                    *
+ * ****************************************************************************** */
+
+endsnippet
+
+snippet guard "Include Guard" b
+#ifndef ${1:`!p
+from os.path import realpath,dirname
+dir = dirname(realpath(path))
+guardtext = "_".join(dir.split("/")[-3:]) + "_" + snip.basename + "_H_"
+snip.rv = guardtext.upper()
+`}
+#define $1
+$0
+#endif // $1
+endsnippet
+
+snippet shared "Shared Ptr"
+std::shared_ptr<$1>($0);
+endsnippet
+
+snippet mkshare "make shared"
+std::make_shared<$1>($0);
+endsnippet
+
+snippet class "a simple class" b
+class $1
+{
+public:
+    $0
+};
+endsnippet
+

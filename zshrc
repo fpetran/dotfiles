@@ -1,6 +1,4 @@
 # vim: fdm=marker
-# Set up the prompt
-
 # autoload -Uz promptinit
 # promptinit
 # prompt adam1
@@ -40,20 +38,31 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 # }}}
 # {{{ plugins
+# [[ ! -d ~/.zgen ]] && git clone https://github.com/tarjoilija/zgen.git ~/.zgen
+# source ~/.zgen/zgen.zsh
+# if ! zgen saved; then
+#     zgen load zsh-users/zsh-syntax-highlighting
+#     zgen load ael-code/zsh-colored-man-pages
+#     zgen load rjcoelho/zsh-dircolors
+
+#     zgen load zsh-users/zsh-history-substring-search
+#     zgen load junegunn/fzf
+
+#     zgen load dracula/zsh
+#     zgen load agnoster/agnoster-zsh-theme
+
+#     zgen save
+# fi
+
 [[ ! -d ~/.zplug ]] && git clone https://github.com/b4b4r07/zplug ~/.zplug
 source ~/.zplug/init.zsh
 
 zplug "zsh-users/zsh-history-substring-search"
-zplug "themes/agnoster", from:oh-my-zsh, as:theme
+zplug "agnoster/agnoster-zsh-theme", as:theme
 zplug "dracula/zsh", as:theme
 zplug "junegunn/fzf-bin", from:gh-r, as:command, rename-to:fzf
-zplug "plugins/git", from:oh-my-zsh
-zplug "plugins/vi-mode", from:oh-my-zsh
 
-zplug "plugins/z", from:oh-my-zsh
-
-zplug "plugins/colorize", from:oh-my-zsh
-zplug "plugins/colored-man-pages", from:oh-my-zsh
+zplug "ael-code/zsh-colored-man-pages"
 zplug "zsh-users/zsh-syntax-highlighting", defer:2
 zplug "rjcoelho/zsh-dircolors"
 
@@ -67,7 +76,7 @@ zplug load
 # }}}
 
 # FZF
-export FZF_DEFAULT_COMMAND="rg --files'
+export FZF_DEFAULT_COMMAND="rg --files --smart-case --type-not html --type-not js"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # theme
