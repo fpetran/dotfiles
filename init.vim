@@ -6,21 +6,12 @@ set encoding=utf-8
 scriptencoding utf-8
 filetype indent plugin on
 
-" {{{ os detection
-if has("win64") || has("win32") || has("win16")
-    let osys="Windows"
-    behave mswin
-elseif has("unix")
-    let osys="Linux"
-elseif has("macunix")
-    let osys="Darwin"
-endif
-" }}}
 " {{{ attempt plugged autoinstall
+" TODO doesn't work
 " if empty(glob('~/.vim/autoload/plug.vim))
-    " silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-        " \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    " autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+" silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+" \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+" autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 " endif
 " }}}
 " {{{ plugins
@@ -35,14 +26,16 @@ if !has('nvim')
     Plug 'tpope/vim-sensible'
 endif
 Plug 'mhinz/vim-signify'
-Plug 'bronson/vim-trailing-whitespace'
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 
+" theme and look
 Plug 'NLKNguyen/papercolor-theme'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'camspiers/animate.vim'
+Plug 'camspiers/lens.vim'
 
 " tmux
 Plug 'christoomey/vim-tmux-navigator'
@@ -50,40 +43,40 @@ Plug 'tmux-plugins/vim-tmux-focus-events'
 Plug 'tmux-plugins/vim-tmux'
 Plug 'roxma/vim-tmux-clipboard'
 
+" misc specific
 Plug 'elzr/vim-json', { 'for': 'json' }
-
 Plug 'lervag/vimtex'
+Plug 'Glench/Vim-Jinja2-Syntax'
+Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SyntaxRange'
+Plug 'godlygeek/tabular' | Plug 'plasticboy/vim-markdown'
 
-Plug 'rhysd/vim-clang-format'
+" linting and formatting
+Plug 'Chiel92/vim-autoformat'
+Plug 'bronson/vim-trailing-whitespace'
+Plug 'Yggdroot/indentLine'
+Plug 'w0rp/ale'
+
 Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
+Plug 'neoclide/coc.nvim', { 'branch': 'release' }
+Plug 'neoclide/rename.nvim', { 'build': 'npm install --only=production' }
 
-Plug 'autozimu/LanguageClient-neovim', { 'branch' : 'next', 'do' : 'bash install.sh' }
-
+" ncm2
 Plug 'roxma/nvim-yarp'
 Plug 'ncm2/ncm2'
 " ncm2 sources
 Plug 'ncm2/ncm2-bufword'
 Plug 'ncm2/ncm2-path'
-Plug 'ncm2/ncm2-ultisnips'
-Plug 'ncm2/ncm2-pyclang'
+Plug 'ncm2/ncm2-ultisnips' | Plug 'SirVer/ultisnips'
+" Plug 'ncm2/ncm2-pyclang'
+Plug 'ncm2/ncm2-jedi'
 Plug 'wellle/tmux-complete.vim'
 
-Plug 'w0rp/ale'
-Plug 'SirVer/ultisnips'
-
+" tag related
 Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
-Plug 'majutsushi/tagbar'
 
 call plug#end()
-
-" defer loading ycm, ultisnips on first InsertEnter
-" augroup load_us_ycm
-"     autocmd!
-"     autocmd InsertEnter * call plug#load('ultisnips', 'YouCompleteMe')
-"                 \| autocmd! load_us_ycm
-" augroup END
 " }}}
-" {{{ colorscheme
+" {{{ theme and look
 if has('termguicolors')
     set termguicolors
 endif
@@ -96,6 +89,13 @@ let g:PaperColor_Theme_Options = {
             \     }
             \   }
             \}
+
+" lens/animate
+let g:lens#disabled_filetypes = [ 'fzf' ]
+let g:fzf_layout = {
+            \ 'window' : 'new | wincmd J | resize 1 | call animate#window_percent_height(0.5)'
+            \}
+
 " }}}
 " {{{ misc settings
 " leader to space
@@ -151,6 +151,7 @@ set history=500
 set backspace=indent,eol,start
 
 set nobackup
+set nowritebackup
 set nowb
 set noswapfile
 
@@ -175,6 +176,13 @@ set whichwrap+=<,>,[,]
 if has("syntax")
     syntax on
 endif
+" }}}
+" {{{ misc keybindings
+nnoremap <silent> <C-p> :Files<CR>
+nnoremap <silent> <C-o> :Buffers<CR>
+nnoremap <silent> <leader>ws :FixWhitespace<CR>
+nnoremap <leader>-- A<space><Esc>80A-<Esc>d80<bar>
+nnoremap <leader>== A<space><Esc>80A=<Esc>d80<bar>
 " }}}
 " {{{ splits
 " easier navigation between splits
@@ -201,13 +209,20 @@ function! CppDoxyFoldText()
     return padding . stripped_line
 endfunction
 
+function! DoxygenMode()
+    set foldlevelstart=99
+    set foldlevel=99
+endfunction
+nnoremap <F9> :call DoxygenMode()<CR>
+
 if has("folding")
     set foldenable
     augroup cpp_fold
-        autocmd FileType cpp.doxygen set foldmethod=marker
-                                  \| set foldmarker=/**,*/
-                                  \| set foldtext=CppDoxyFoldText()
-                                  \| g/\/\*\*/foldc
+        au!
+        autocmd BufRead,BufNewFile *.h set foldmethod=marker
+                    \| set foldmarker=/**,*/
+                    \| set foldtext=CppDoxyFoldText()
+                    \| silent g/\/\*\*/foldc
     augroup END
 end
 " }}}
@@ -224,45 +239,104 @@ let g:airline#extensions#tabline#formatter = 'unique_tail'
 " }}}
 " {{{ language client
 set hidden " required for renaming, etc.
-let g:LanguageClient_serverCommands = {
-            \ 'cpp' : [ 'ccls' ],
-            \ 'cpp.doxygen' : [ 'ccls' ],
-            \ 'c' : [ 'ccls' ]
-            \ }
-let g:LanguageClient_autoStart = 1
-let g:LanguageClient_loadSettings = 1
-let g:LanguageClient_settingsPath = expand("~/.config/nvim/settings.json")
-let g:LanguageClient_rootMarkers = {
-            \ 'cpp': ['compile_commands.json', '.project'],
-            \ 'cpp.doxygen': ['compile_commands.json', '.project']
-            \}
-let g:LanguageClient_hasSnippetSupport = 0
+" let g:LanguageClient_serverCommands = {
+"             \ 'cpp' : [ 'ccls' ],
+"             \ 'cpp.doxygen' : [ 'ccls' ],
+"             \ 'c' : [ 'ccls' ],
+"             \ 'cmake' : [ 'cmake -E server' ]
+"             \ }
+" let g:LanguageClient_autoStart = 1
+" " let g:LanguageClient_loadSettings = 1
+" " let g:LanguageClient_settingsPath = expand("~/.config/nvim/settings.json")
+" let g:LanguageClient_rootMarkers = {
+"             \ 'cpp': ['compile_commands.json', 'build/compile_commands.json', '.project'],
+"             \ 'cpp.doxygen': ['compile_commands.json', 'build/compile_commands.json', '.project']
+"             \}
+" " let g:LanguageClient_hasSnippetSupport = 0
 
-function! LCMappings()
-    set completefunc=LanguageClient#complete
-    set formatexpr=LanguageClient_textDocument_rangeFormatting()
-    nnoremap <F5> :call LanguageClient_contextMenu()<CR>
-    nnoremap <silent> gh :call LanguageClient#textDocument_hover()<CR>
-    nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-    nnoremap <silent> gr :call LanguageClient#textDocument_references({'includeDeclaration': v:false})<CR>
-    nnoremap <silent> gs :call LanguageClient#textDocument_documentSymbol()<CR>
-    nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
+" " let g:LanguageClient_loggingLevel = 'INFO'
+" " let g:LanguageClient_loggingFile = expand('~/LanguageClient.log')
+" " let g:LanguageClient_serverStderr = expand('~/LanguageServer.log')
+
+" function! LCMappings()
+"     set completefunc=LanguageClient#complete
+"     set formatexpr=LanguageClient_textDocument_rangeFormatting()
+"     nnoremap <F5> :call LanguageClient_contextMenu()<CR>
+"     nnoremap <silent> gh :call LanguageClient#textDocument_hover()<CR>
+"     nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
+"     nnoremap <silent> gr :call LanguageClient#textDocument_references({'includeDeclaration': v:false})<CR>
+"     nnoremap <silent> gs :call LanguageClient#textDocument_documentSymbol()<CR>
+"     nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
+" endfunction
+
+" augroup LanguageClient_config
+"     au!
+"     au BufEnter * let b:Plugin_LanguageClient_started = 0
+"     au User LanguageClientStarted setl signcolumn=yes
+"     au User LanguageClientStarted let b:Plugin_LanguageClient_started = 1
+"     au User LanguageClientStopped setl signcolumn=auto
+"     au User LanguageClientStopped let b:Plugin_LanguageClient_started = 0
+"     au CursorMoved * if b:Plugin_LanguageClient_started | sil call LanguageClient#textDocument_documentHighlight() | endif
+"     au FileType cpp,cpp.doxygen :call LCMappings()
+" augroup END
+
+" coc.nvim
+set cmdheight=2
+set updatetime=300
+set shortmess+=c
+set signcolumn=yes
+
+" TODO check what this stuff does exactly ---v
+
+" TAB to trigger completion
+" see below for snippet aware version
+inoremap <silent><expr> <TAB>
+            \ pumvisible() ? "\<C-n>" :
+            \ <SID>check_back_space() ? "\<TAB>" :
+            \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+function! s:check_back_space() abort
+    let col = col('.') - 1
+    return !col || getline('.')[col - 1] =~# '\s'
 endfunction
 
-augroup LanguageClient_config
-    au!
-    au BufEnter * let b:Plugin_LanguageClient_started = 0
-    au User LanguageClientStarted setl signcolumn=yes
-    au User LanguageClientStarted let b:Plugin_LanguageClient_started = 1
-    au User LanguageClientStopped setl signcolumn=auto
-    au User LanguageClientStopped let b:Plugin_LanguageClient_started = 0
-    au CursorMoved * if b:Plugin_LanguageClient_started | sil call LanguageClient#textDocument_documentHighlight() | endif
-    au FileType cpp,cpp.doxygen :call LCMappings()
-augroup END
+" <c-space> to trigger completion
+inoremap <silent><expr> <c-space> coc#refresh()
+" <cr> to confirm completion
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" [g / ]g to navigate diagnostics
+nmap <silent> [g <Plug>(coc-diagnostic-prev)
+nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+" coc gotos
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
+
+" document highlight
+au CursorHold * sil call CocActionAsync('highlight')
+au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
+
+" rename.nvim project wide rename
+nmap <silent> <F2> <Plug>(rename-search-replace)
+
+" mapping for coc-snippets
+" does not work with nvim < 0.4
+" inoremap <silent><expr> <TAB>
+"             \ pumvisible() ? coc#_select_confirm() :
+"             \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>" :
+"             \ <SID>check_back_space() ? "\<TAB>" :
+"             \ coc#refresh()
+let g:coc_snippet_next = '<tab>'
+
+" coc-snippets
 " }}}
 " {{{ ale, tags
 " ALE config
-let g:ale_linters = {'cpp': [], 'c': [] } " using languageclient for cpp and c
+let g:ale_linters = {'cpp': [], 'c': [] }
+let g:ale_linters.python = ['flake8']
 let g:ale_cache_executable_check_failures = 1
 let g:airline#extensions#ale#enabled = 1
 
@@ -279,18 +353,19 @@ let g:gutentags_auto_add_gtags_cscope = 0
 
 " remap of jump to tag for german keyboard
 nnoremap ü <C-]>
-" map for tagbar
-nmap <F8> :TagbarToggle<CR>
+" }}}
+" {{{ autoformat
+nnoremap <leader>af :Autoformat<CR>
 " }}}
 " {{{ completion, snippets
 " ncm2
 autocmd BufEnter * call ncm2#enable_for_buffer()
 set completeopt=noinsert,menuone,noselect
 
-" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 
 " ncm2-pyclang
-let g:ncm2_pyclang#library_path = '/usr/lib/llvm-7/lib'
+let g:ncm2_pyclang#library_path = '/usr/lib/llvm-8/lib'
 let g:ncm2_pyclang#database_path = [
             \ 'compile_commands.json',
             \ '../compile_commands.json',
@@ -311,14 +386,20 @@ let g:UltiSnipsSnippetDirectories=['customsnips']
 let g:tmux_navigator_save_on_switch = 2
 let g:tmux_navigator_disable_when_zoomed = 1
 " }}}
+" {{{ latex
+let g:vimtex_compiler_progname = 'nvr'
+" }}}
 " {{{ c++ specific
+" TODO put this in a filetype
 if has("autocmd")
     autocmd FileType cmake setlocal commentstring=#\ %s
     augroup cpp_stuff
         autocmd!
         autocmd BufRead,BufNewFile *.h,*.cpp setlocal commentstring=//\ %s " use // for commentary
         autocmd BufRead,BufNewFile *.h,*.cpp set colorcolumn=120          " highlight column
-        autocmd BufRead,BufNewFile *.h,*.cpp,*.dox set filetype=cpp.doxygen    " set doxygen subtype
+        autocmd BufRead,BufNewFile *.h,*.cpp set matchpairs+=<:>        " use <> for bracket matching (for templates)
+        " autocmd BufRead,BufNewFile *.h,*.cpp,*.dox set filetype=cpp.doxygen    " set doxygen subtype
+        " autocmd BufRead,BufNewFile *.template.h,*.template.cpp set filetype=jinja.cpp
     augroup END
 endif
 
@@ -338,12 +419,5 @@ if has("autocmd")
         autocmd BufRead,BufNewFile *.cpp let g:alternates.searchpath = 'reg:|\([^/]\+\)/src|\1/include/\1||'
     augroup END
 endif
-
-" use 7.0 for KEO development
-let g:clang_format#command = 'clang-format-7'
-" let g:clang_format#auto_format_on_insert_leave = 1
-let g:clang_format#detect_style_file = 1
-
-" au BufNewFile,BufRead *.cpp,*.h syn region myCComment start="/\*" end="\*/" fold keepend transparent
 " }}}
 " vim: set shiftwidth=4 softtabstop=4 expandtab tw=120 foldlevel=0
