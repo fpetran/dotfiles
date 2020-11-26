@@ -48,7 +48,7 @@ Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'lervag/vimtex'
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SyntaxRange'
-Plug 'godlygeek/tabular' | Plug 'plasticboy/vim-markdown'
+" Plug 'godlygeek/tabular' | Plug 'plasticboy/vim-markdown'
 
 " linting and formatting
 Plug 'Chiel92/vim-autoformat'
@@ -57,8 +57,13 @@ Plug 'Yggdroot/indentLine'
 Plug 'w0rp/ale'
 
 Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
-Plug 'neoclide/coc.nvim', { 'branch': 'release' }
-Plug 'neoclide/rename.nvim', { 'build': 'npm install --only=production' }
+
+" LSP and related stuff Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'neovim/nvim-lsp'
+" Plug 'autozimu/LanguageClient-neovim', {
+"             \ 'branch' : 'next',
+"             \ 'do': 'bash install.sh',
+"             \ }
 
 " ncm2
 Plug 'roxma/nvim-yarp'
@@ -72,7 +77,7 @@ Plug 'ncm2/ncm2-jedi'
 Plug 'wellle/tmux-complete.vim'
 
 " tag related
-Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
+" Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
 
 call plug#end()
 " }}}
@@ -178,8 +183,9 @@ if has("syntax")
 endif
 " }}}
 " {{{ misc keybindings
-nnoremap <silent> <C-p> :Files<CR>
+nnoremap <silent> <C-p> :GFiles<CR>
 nnoremap <silent> <C-o> :Buffers<CR>
+nnoremap <silent> <C-i> :Rg<CR>
 nnoremap <silent> <leader>ws :FixWhitespace<CR>
 nnoremap <leader>-- A<space><Esc>80A-<Esc>d80<bar>
 nnoremap <leader>== A<space><Esc>80A=<Esc>d80<bar>
@@ -224,6 +230,10 @@ if has("folding")
                     \| set foldtext=CppDoxyFoldText()
                     \| silent g/\/\*\*/foldc
     augroup END
+    augroup json_fold
+        au!
+        autocmd BufRead,BufNewFile *.json set foldmethod=syntax
+    augroup END
 end
 " }}}
 " {{{ airline
@@ -238,7 +248,12 @@ let g:airline_theme = 'papercolor'
 let g:airline#extensions#tabline#formatter = 'unique_tail'
 " }}}
 " {{{ language client
-set hidden " required for renaming, etc.
+
+:lua << END
+require'nvim_lsp'.ccls.setup{}
+END
+
+" set hidden " required for renaming, etc.
 " let g:LanguageClient_serverCommands = {
 "             \ 'cpp' : [ 'ccls' ],
 "             \ 'cpp.doxygen' : [ 'ccls' ],
@@ -254,9 +269,9 @@ set hidden " required for renaming, etc.
 "             \}
 " " let g:LanguageClient_hasSnippetSupport = 0
 
-" " let g:LanguageClient_loggingLevel = 'INFO'
-" " let g:LanguageClient_loggingFile = expand('~/LanguageClient.log')
-" " let g:LanguageClient_serverStderr = expand('~/LanguageServer.log')
+" let g:LanguageClient_loggingLevel = 'INFO'
+" let g:LanguageClient_loggingFile = expand('~/LanguageClient.log')
+" let g:LanguageClient_serverStderr = expand('~/LanguageServer.log')
 
 " function! LCMappings()
 "     set completefunc=LanguageClient#complete
@@ -280,58 +295,6 @@ set hidden " required for renaming, etc.
 "     au FileType cpp,cpp.doxygen :call LCMappings()
 " augroup END
 
-" coc.nvim
-set cmdheight=2
-set updatetime=300
-set shortmess+=c
-set signcolumn=yes
-
-" TODO check what this stuff does exactly ---v
-
-" TAB to trigger completion
-" see below for snippet aware version
-inoremap <silent><expr> <TAB>
-            \ pumvisible() ? "\<C-n>" :
-            \ <SID>check_back_space() ? "\<TAB>" :
-            \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-function! s:check_back_space() abort
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1] =~# '\s'
-endfunction
-
-" <c-space> to trigger completion
-inoremap <silent><expr> <c-space> coc#refresh()
-" <cr> to confirm completion
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" [g / ]g to navigate diagnostics
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
-" coc gotos
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
-" document highlight
-au CursorHold * sil call CocActionAsync('highlight')
-au CursorHoldI * sil call CocActionAsync('showSignatureHelp')
-
-" rename.nvim project wide rename
-nmap <silent> <F2> <Plug>(rename-search-replace)
-
-" mapping for coc-snippets
-" does not work with nvim < 0.4
-" inoremap <silent><expr> <TAB>
-"             \ pumvisible() ? coc#_select_confirm() :
-"             \ coc#expandableOrJumpable() ? "\<C-r>=coc#rpc#request('doKeymap', ['snippets-expand-jump', ''])\<CR>" :
-"             \ <SID>check_back_space() ? "\<TAB>" :
-"             \ coc#refresh()
-let g:coc_snippet_next = '<tab>'
-
-" coc-snippets
 " }}}
 " {{{ ale, tags
 " ALE config
@@ -387,7 +350,7 @@ let g:tmux_navigator_save_on_switch = 2
 let g:tmux_navigator_disable_when_zoomed = 1
 " }}}
 " {{{ latex
-let g:vimtex_compiler_progname = 'nvr'
+let g:tex_flavor = 'latex'
 " }}}
 " {{{ c++ specific
 " TODO put this in a filetype
