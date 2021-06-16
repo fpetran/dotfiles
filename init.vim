@@ -25,17 +25,25 @@ Plug 'tpope/vim-commentary'
 if !has('nvim')
     Plug 'tpope/vim-sensible'
 endif
-Plug 'mhinz/vim-signify'
+Plug 'nvim-lua/plenary.nvim' | Plug 'lewis6991/gitsigns.nvim'
+
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 
-" theme and look
-Plug 'NLKNguyen/papercolor-theme'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'camspiers/animate.vim'
-Plug 'camspiers/lens.vim'
+" themes
+Plug 'marko-cerovac/material.nvim'
+Plug 'Th3Whit3Wolf/space-nvim'
+Plug 'ishan9299/nvim-solarized-lua'
+Plug 'tanvirtin/monokai.nvim'
+Plug 'Iron-E/nvim-highlite'
+
+" airline
+Plug 'hoob3rt/lualine.nvim'
+Plug 'kyazdani42/nvim-web-devicons'
+" icons without colors
+" Plug 'ryanoasis/vim-devicons'
+Plug 'akinsho/nvim-bufferline.lua'
 
 " tmux
 Plug 'christoomey/vim-tmux-navigator'
@@ -48,34 +56,52 @@ Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'lervag/vimtex'
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SyntaxRange'
-" Plug 'godlygeek/tabular' | Plug 'plasticboy/vim-markdown'
+Plug 'folke/which-key.nvim'
 
 " linting and formatting
 Plug 'Chiel92/vim-autoformat'
 Plug 'bronson/vim-trailing-whitespace'
 Plug 'Yggdroot/indentLine'
-Plug 'w0rp/ale'
 
 Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
 
-" LSP and related stuff Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'sakhnik/nvim-gdb'
+
+" LSP and related stuff
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'neovim/nvim-lsp'
+Plug 'neovim/nvim-lspconfig'
+
+Plug 'nvim-lua/completion-nvim'
+
+Plug 'RishabhRD/popfix' | Plug 'RishabhRD/nvim-lsputils'
+
 " Plug 'autozimu/LanguageClient-neovim', {
 "             \ 'branch' : 'next',
 "             \ 'do': 'bash install.sh',
 "             \ }
 
-" ncm2
-Plug 'roxma/nvim-yarp'
-Plug 'ncm2/ncm2'
-" ncm2 sources
-Plug 'ncm2/ncm2-bufword'
-Plug 'ncm2/ncm2-path'
-Plug 'ncm2/ncm2-ultisnips' | Plug 'SirVer/ultisnips'
+" completion/snips
+" Plug 'Shougo/deoplete.nvim'
+" let g:deoplete#enable_at_startup = 1
+" " Plug 'Shougo/deoplete-lsp'
+" Plug 'deoplete-plugins/deoplete-jedi'
+" Plug 'Shougo/neco-vim'
+
+" Plug 'roxma/nvim-yarp'
+" Plug 'ncm2/ncm2'
+" " ncm2 sources
+" Plug 'ncm2/ncm2-bufword'
+" Plug 'ncm2/ncm2-path'
+" Plug 'ncm2/ncm2-ultisnips'
+Plug 'SirVer/ultisnips'
 " Plug 'ncm2/ncm2-pyclang'
-Plug 'ncm2/ncm2-jedi'
+" Plug 'ncm2/ncm2-jedi'
+
 Plug 'wellle/tmux-complete.vim'
 
+" for ranger file manager
+" Plug 'rbgrouleff/bclose.vim' | Plug 'francoiscabrol/ranger.vim'
 " tag related
 " Plug 'ludovicchabant/vim-gutentags' | Plug 'skywind3000/gutentags_plus'
 
@@ -85,28 +111,46 @@ call plug#end()
 if has('termguicolors')
     set termguicolors
 endif
-set background=light
-colorscheme PaperColor
-let g:PaperColor_Theme_Options = {
-            \ 'language' : {
-            \   'cpp' : {
-            \      'highlight_standard_library': 1
-            \     }
-            \   }
-            \}
+set background=dark
+" colorscheme space-nvim
+colorscheme material
+let g:material_style = 'lighter'
 
-" lens/animate
-let g:lens#disabled_filetypes = [ 'fzf' ]
-let g:fzf_layout = {
-            \ 'window' : 'new | wincmd J | resize 1 | call animate#window_percent_height(0.5)'
-            \}
-
+lua << EOF
+-- gitsigns
+require('gitsigns').setup {
+signs = {
+    add          = {hl = 'GitSignsAdd'   , text = '│', numhl='GitSignsAddNr'   , linehl='GitSignsAddLn'},
+    change       = {hl = 'GitSignsChange', text = '│', numhl='GitSignsChangeNr', linehl='GitSignsChangeLn'},
+    delete       = {hl = 'GitSignsDelete', text = '_', numhl='GitSignsDeleteNr', linehl='GitSignsDeleteLn'},
+    topdelete    = {hl = 'GitSignsDelete', text = '‾', numhl='GitSignsDeleteNr', linehl='GitSignsDeleteLn'},
+    changedelete = {hl = 'GitSignsChange', text = '~', numhl='GitSignsChangeNr', linehl='GitSignsChangeLn'},
+  }
+}
+-- lualine
+require('lualine').setup {
+options = {
+    theme = 'material'
+}
+}
+-- bufferline
+require('bufferline').setup {
+options = {
+    buffer_close_icon = " ",
+    always_show_bufferline = false
+}
+}
+EOF
 " }}}
 " {{{ misc settings
 " leader to space
 let mapleader = " "
 
-set textwidth=120
+augroup textwidth
+    autocmd!
+    autocmd BufRead,BufNewFile *.h,*.cpp setlocal textwidth=120
+augroup END
+set textwidth=80
 
 " tab/indentation
 set shiftwidth=4
@@ -183,12 +227,15 @@ if has("syntax")
 endif
 " }}}
 " {{{ misc keybindings
-nnoremap <silent> <C-p> :GFiles<CR>
+nnoremap <silent> <C-p> :Files<CR>
 nnoremap <silent> <C-o> :Buffers<CR>
 nnoremap <silent> <C-i> :Rg<CR>
-nnoremap <silent> <leader>ws :FixWhitespace<CR>
+" insert 80 dashes
 nnoremap <leader>-- A<space><Esc>80A-<Esc>d80<bar>
 nnoremap <leader>== A<space><Esc>80A=<Esc>d80<bar>
+
+nnoremap <silent> <leader>ws :FixWhitespace<CR>
+nnoremap <leader>af :Autoformat<CR>
 " }}}
 " {{{ splits
 " easier navigation between splits
@@ -236,113 +283,88 @@ if has("folding")
     augroup END
 end
 " }}}
-" {{{ airline
-set laststatus=2
-let g:airline#extensions#tabline#enabled = 1
-let g:airline_powerline_fonts = 1
-if !exists('g:airline_symbols')
-    let g:airline_symbols = {}
-endif
-let g:airline_symbols.space = "\ua0"
-let g:airline_theme = 'papercolor'
-let g:airline#extensions#tabline#formatter = 'unique_tail'
-" }}}
 " {{{ language client
 
-:lua << END
-require'nvim_lsp'.ccls.setup{}
-END
+set hidden " required for renaming, etc.
+" nvim 0.5.0 specific TODO alternatives for legacy?
+" treesitter/lsp/etc lua setup
+lua <<EOF
+-- lua functions used in config
+local lsp_attach_handler = function(client)
+    -- keybindings
+    vim.api.nvim_buf_set_keymap(0, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', {noremap = true})
+    vim.api.nvim_buf_set_keymap(0, 'n', '<c-]>', '<cmd>lua vim.lsp.buf.definition()<CR>', {noremap = true})
 
-" set hidden " required for renaming, etc.
-" let g:LanguageClient_serverCommands = {
-"             \ 'cpp' : [ 'ccls' ],
-"             \ 'cpp.doxygen' : [ 'ccls' ],
-"             \ 'c' : [ 'ccls' ],
-"             \ 'cmake' : [ 'cmake -E server' ]
-"             \ }
-" let g:LanguageClient_autoStart = 1
-" " let g:LanguageClient_loadSettings = 1
-" " let g:LanguageClient_settingsPath = expand("~/.config/nvim/settings.json")
-" let g:LanguageClient_rootMarkers = {
-"             \ 'cpp': ['compile_commands.json', 'build/compile_commands.json', '.project'],
-"             \ 'cpp.doxygen': ['compile_commands.json', 'build/compile_commands.json', '.project']
-"             \}
-" " let g:LanguageClient_hasSnippetSupport = 0
+    -- module handlers
+    require('completion').on_attach()
+end
 
-" let g:LanguageClient_loggingLevel = 'INFO'
-" let g:LanguageClient_loggingFile = expand('~/LanguageClient.log')
-" let g:LanguageClient_serverStderr = expand('~/LanguageServer.log')
+-- treesitter
+local treesitter = require'nvim-treesitter.configs'
+treesitter.setup {
+    -- indent = { enable = true },
+    highlight = { enable = true }
+}
+-- language server configuration
+local lspconfig = require'lspconfig'
+lspconfig.ccls.setup {
+    on_attach = lsp_attach_handler;
+    root_dir = lspconfig.util.root_pattern('compile_commands.json', 'build/compile_commands.json', '.project');
+    init_options = {
+        cacheDirectory = "~/.ccls-cache";
+    }
+}
+lspconfig.pyls.setup {}
 
-" function! LCMappings()
-"     set completefunc=LanguageClient#complete
-"     set formatexpr=LanguageClient_textDocument_rangeFormatting()
-"     nnoremap <F5> :call LanguageClient_contextMenu()<CR>
-"     nnoremap <silent> gh :call LanguageClient#textDocument_hover()<CR>
-"     nnoremap <silent> gd :call LanguageClient#textDocument_definition()<CR>
-"     nnoremap <silent> gr :call LanguageClient#textDocument_references({'includeDeclaration': v:false})<CR>
-"     nnoremap <silent> gs :call LanguageClient#textDocument_documentSymbol()<CR>
-"     nnoremap <silent> <F2> :call LanguageClient#textDocument_rename()<CR>
-" endfunction
+-- lsputil bindings
+-- vim.lsp.handlers['textDocument/codeAction'] = require'lsputil.codeAction'.code_actionHandler
+-- vim.lsp.handlers['textDocument/references'] = require'lsputil.locations'.references_handler
+-- vim.lsp.handlers['textDocument/definition'] = require'lsputil.locations'.definition_handler
+-- vim.lsp.handlers['textDocument/declaration'] = require'lsputil.locations'.declaration_handler
+-- vim.lsp.handlers['textDocument/typeDefinition'] = require'lsputil.locations'.typeDefinition_handler
+-- vim.lsp.handlers['textDocument/implementation'] = require'lsputil.locations'.implementation_handler
+-- vim.lsp.handlers['textDocument/documentSymbol'] = require'lsputil.symbols'.document_handler
+-- vim.lsp.handlers['workspace/symbol'] = require'lsputil.symbols'.workspace_handler
+EOF
 
-" augroup LanguageClient_config
-"     au!
-"     au BufEnter * let b:Plugin_LanguageClient_started = 0
-"     au User LanguageClientStarted setl signcolumn=yes
-"     au User LanguageClientStarted let b:Plugin_LanguageClient_started = 1
-"     au User LanguageClientStopped setl signcolumn=auto
-"     au User LanguageClientStopped let b:Plugin_LanguageClient_started = 0
-"     au CursorMoved * if b:Plugin_LanguageClient_started | sil call LanguageClient#textDocument_documentHighlight() | endif
-"     au FileType cpp,cpp.doxygen :call LCMappings()
-" augroup END
-
-" }}}
-" {{{ ale, tags
-" ALE config
-let g:ale_linters = {'cpp': [], 'c': [] }
-let g:ale_linters.python = ['flake8']
-let g:ale_cache_executable_check_failures = 1
-let g:airline#extensions#ale#enabled = 1
-
-" gutentags
-set tags=./tags;/
-let g:gutentags_modules = [ 'ctags', 'gtags_cscope' ]
-let g:gutentags_cache_dir = expand('~/.cache/tags')
-" line below is important so keobuilder deps get tagged as well
-let g:gutentags_project_root = [ '.project', 'compile_commands.json' ]
-let g:gutentags_auto_add_gtags_cscope = 0
-" function! GutentagsStatus(...)
-"     let w:airline_section_a = '%{gutentags#statusline()}'
-" endfunction
-
-" remap of jump to tag for german keyboard
-nnoremap ü <C-]>
-" }}}
-" {{{ autoformat
-nnoremap <leader>af :Autoformat<CR>
 " }}}
 " {{{ completion, snippets
-" ncm2
-autocmd BufEnter * call ncm2#enable_for_buffer()
 set completeopt=noinsert,menuone,noselect
 
+" completion-nvim
+" <Tab> and <S/Tab> to navigate popup
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-n>" : "\<S-Tab>"
 
-" ncm2-pyclang
-let g:ncm2_pyclang#library_path = '/usr/lib/llvm-8/lib'
-let g:ncm2_pyclang#database_path = [
-            \ 'compile_commands.json',
-            \ '../compile_commands.json',
-            \ 'build/compile_commands.json',
-            \ '../build/compile_commands.json'
-            \ ]
-" ncm2-ultisnips
-inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
+set shortmess+=c
 
+let g:completion_enable_snippet = 'UltiSnips'
+
+" ncm2
+" autocmd BufEnter * call ncm2#enable_for_buffer()
+
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+
+" " ncm2-pyclang
+" let g:ncm2_pyclang#library_path = '/usr/lib/llvm-10/lib'
+" let g:ncm2_pyclang#database_path = [
+"             \ 'compile_commands.json',
+"             \ '../compile_commands.json',
+"             \ 'build/compile_commands.json',
+"             \ '../build/compile_commands.json'
+"             \ ]
+" " ncm2-ultisnips
+" inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
+let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger = "<c-j>"
 let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
 let g:UltiSnipsRemoveSelectModeMappings = 0
 
 let g:UltiSnipsSnippetDirectories=['customsnips']
+" call deoplete#custom#var('omni', 'input_patterns', {
+"             \ 'cpp': g:cpp#re#deoplete
+"             \})
+
 " }}}
 " {{{ tmux related
 " 1 - write current buffer if changed, 2 - :wa
