@@ -10,8 +10,8 @@ filetype indent plugin on
 " TODO doesn't work
 " if empty(glob('~/.vim/autoload/plug.vim))
 " silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-" \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-" autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+"  \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim autocmd
+" VimEnter * PlugInstall --sync | source $MYVIMRC
 " endif
 " }}}
 " {{{ plugins
@@ -37,6 +37,8 @@ Plug 'Th3Whit3Wolf/space-nvim'
 Plug 'ishan9299/nvim-solarized-lua'
 Plug 'tanvirtin/monokai.nvim'
 Plug 'Iron-E/nvim-highlite'
+Plug 'rafamadriz/neon'
+Plug 'sainnhe/everforest'
 
 " airline
 Plug 'hoob3rt/lualine.nvim'
@@ -54,9 +56,11 @@ Plug 'roxma/vim-tmux-clipboard'
 " misc specific
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'lervag/vimtex'
+Plug 'evedovelli/rst-robotframework-syntax-vim'
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SyntaxRange'
 Plug 'folke/which-key.nvim'
+Plug 'famiu/bufdelete.nvim'
 
 " linting and formatting
 Plug 'Chiel92/vim-autoformat'
@@ -71,10 +75,12 @@ Plug 'sakhnik/nvim-gdb'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'neovim/nvim-lsp'
 Plug 'neovim/nvim-lspconfig'
+Plug 'nvim-lua/lsp-status.nvim'
 
 Plug 'nvim-lua/completion-nvim'
 
 Plug 'RishabhRD/popfix' | Plug 'RishabhRD/nvim-lsputils'
+Plug 'folke/trouble.nvim'
 
 " Plug 'autozimu/LanguageClient-neovim', {
 "             \ 'branch' : 'next',
@@ -111,12 +117,19 @@ call plug#end()
 if has('termguicolors')
     set termguicolors
 endif
-set background=dark
+" set background=dark
 " colorscheme space-nvim
-colorscheme material
-let g:material_style = 'lighter'
-
+" colorscheme material
+" colorscheme neon
+" let g:material_style = 'palenight'
+" let g:neon_style = 'light'
+"
+set background=light
 lua << EOF
+-- colorscheme
+vim.g.everforest_background = 'hard'
+vim.cmd[[colorscheme everforest]]
+
 -- gitsigns
 require('gitsigns').setup {
 signs = {
@@ -130,7 +143,7 @@ signs = {
 -- lualine
 require('lualine').setup {
 options = {
-    theme = 'material'
+    theme = 'everforest'
 }
 }
 -- bufferline
@@ -289,35 +302,51 @@ set hidden " required for renaming, etc.
 " nvim 0.5.0 specific TODO alternatives for legacy?
 " treesitter/lsp/etc lua setup
 lua <<EOF
--- lua functions used in config
-local lsp_attach_handler = function(client)
-    -- keybindings
-    vim.api.nvim_buf_set_keymap(0, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', {noremap = true})
-    vim.api.nvim_buf_set_keymap(0, 'n', '<c-]>', '<cmd>lua vim.lsp.buf.definition()<CR>', {noremap = true})
-
-    -- module handlers
-    require('completion').on_attach()
-end
-
 -- treesitter
 local treesitter = require'nvim-treesitter.configs'
 treesitter.setup {
     -- indent = { enable = true },
     highlight = { enable = true }
 }
+
 -- language server configuration
+-- lsp status won't work idk why
+-- local lsp_status = require'lsp-status'
+-- lsp_status.register_progress()
 local lspconfig = require'lspconfig'
+
+local on_attach = function(client, bufnr)
+    local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+    local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+
+    -- lsp_status.on_attach(client)
+
+    -- completion triggered by <c-x><c-o>
+    buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+    -- mappings
+    local opts = { noremap=true, silent=true }
+
+    buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
+    buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+    buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+    buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
+end
+
 lspconfig.ccls.setup {
-    on_attach = lsp_attach_handler;
-    root_dir = lspconfig.util.root_pattern('compile_commands.json', 'build/compile_commands.json', '.project');
+    on_attach = on_attach,
+    root_dir = lspconfig.util.root_pattern('compile_commands.json', 'build/compile_commands.json', '.project'),
     init_options = {
         cacheDirectory = "~/.ccls-cache";
     }
 }
-lspconfig.pyls.setup {}
+lspconfig.pyright.setup {
+    on_attach = on_attach
+}
+
 
 -- lsputil bindings
--- vim.lsp.handlers['textDocument/codeAction'] = require'lsputil.codeAction'.code_actionHandler
+-- vim.lsp.handlers['textDocument/codeAction'] = require'lsputil.codeAction'.code_action_handler
 -- vim.lsp.handlers['textDocument/references'] = require'lsputil.locations'.references_handler
 -- vim.lsp.handlers['textDocument/definition'] = require'lsputil.locations'.definition_handler
 -- vim.lsp.handlers['textDocument/declaration'] = require'lsputil.locations'.declaration_handler
@@ -325,6 +354,11 @@ lspconfig.pyls.setup {}
 -- vim.lsp.handlers['textDocument/implementation'] = require'lsputil.locations'.implementation_handler
 -- vim.lsp.handlers['textDocument/documentSymbol'] = require'lsputil.symbols'.document_handler
 -- vim.lsp.handlers['workspace/symbol'] = require'lsputil.symbols'.workspace_handler
+
+-- trouble.nvim
+-- require("trouble").setup {
+    -- bla
+-- }
 EOF
 
 " }}}
@@ -385,6 +419,13 @@ if has("autocmd")
         autocmd BufRead,BufNewFile *.h,*.cpp set matchpairs+=<:>        " use <> for bracket matching (for templates)
         " autocmd BufRead,BufNewFile *.h,*.cpp,*.dox set filetype=cpp.doxygen    " set doxygen subtype
         " autocmd BufRead,BufNewFile *.template.h,*.template.cpp set filetype=jinja.cpp
+    augroup END
+endif
+
+if has("autocmd")
+    augroup json_foldlevel
+        autocmd!
+        autocmd BufRead,BufNewFile *.json set foldlevelstart=99
     augroup END
 endif
 

@@ -137,3 +137,6 @@ make() {
 # POWERLEVEL9K_ROOT_ICON=$'\uF09C'
 # POWERLEVEL9K_TIME_ICON=$'\uF017'
 
+reset_dns() {
+    sudo resolvectl dns enp0s3 172.18.10.1
+}
