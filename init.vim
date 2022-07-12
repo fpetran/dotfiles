@@ -15,6 +15,7 @@ filetype indent plugin on
 " endif
 " }}}
 " {{{ plugins
+" lua require('config/plugins')
 call plug#begin(stdpath('config')."/plugged")
 
 Plug 'tpope/vim-fugitive'
@@ -22,23 +23,23 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-commentary'
-if !has('nvim')
-    Plug 'tpope/vim-sensible'
-endif
 Plug 'nvim-lua/plenary.nvim' | Plug 'lewis6991/gitsigns.nvim'
 
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
+" Plug 'junegunn/fzf.vim'
+Plug 'nvim-lua/plenary.nvim' | Plug 'nvim-telescope/telescope.nvim'
 
 " themes
 Plug 'marko-cerovac/material.nvim'
 Plug 'Th3Whit3Wolf/space-nvim'
-Plug 'ishan9299/nvim-solarized-lua'
 Plug 'tanvirtin/monokai.nvim'
 Plug 'Iron-E/nvim-highlite'
 Plug 'rafamadriz/neon'
+
+Plug 'Th3Whit3Wolf/onebuddy'
 Plug 'sainnhe/everforest'
+Plug 'sainnhe/edge'
 
 " airline
 Plug 'hoob3rt/lualine.nvim'
@@ -56,7 +57,6 @@ Plug 'roxma/vim-tmux-clipboard'
 " misc specific
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'lervag/vimtex'
-Plug 'evedovelli/rst-robotframework-syntax-vim'
 Plug 'Glench/Vim-Jinja2-Syntax'
 Plug 'inkarkat/vim-ingo-library' | Plug 'inkarkat/vim-SyntaxRange'
 Plug 'folke/which-key.nvim'
@@ -67,42 +67,34 @@ Plug 'Chiel92/vim-autoformat'
 Plug 'bronson/vim-trailing-whitespace'
 Plug 'Yggdroot/indentLine'
 
-Plug 'LucHermitte/lh-vim-lib' | Plug 'LucHermitte/alternate-lite'
-
-Plug 'sakhnik/nvim-gdb'
-
 " LSP and related stuff
-Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'} ", 'branch': '0.5-compat'}
 Plug 'neovim/nvim-lsp'
 Plug 'neovim/nvim-lspconfig'
 Plug 'nvim-lua/lsp-status.nvim'
+Plug 'p00f/clangd_extensions.nvim'
 
-Plug 'nvim-lua/completion-nvim'
+Plug 'mfussenegger/nvim-dap'
+Plug 'stevearc/aerial.nvim'
+Plug 'SmiteshP/nvim-navic'
 
-Plug 'RishabhRD/popfix' | Plug 'RishabhRD/nvim-lsputils'
 Plug 'folke/trouble.nvim'
 
-" Plug 'autozimu/LanguageClient-neovim', {
-"             \ 'branch' : 'next',
-"             \ 'do': 'bash install.sh',
-"             \ }
+" completion
 
-" completion/snips
-" Plug 'Shougo/deoplete.nvim'
-" let g:deoplete#enable_at_startup = 1
-" " Plug 'Shougo/deoplete-lsp'
-" Plug 'deoplete-plugins/deoplete-jedi'
-" Plug 'Shougo/neco-vim'
+Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
+Plug 'ms-jpq/coq.artifacts', {'branch': 'coq'}
+Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 
-" Plug 'roxma/nvim-yarp'
-" Plug 'ncm2/ncm2'
-" " ncm2 sources
-" Plug 'ncm2/ncm2-bufword'
-" Plug 'ncm2/ncm2-path'
-" Plug 'ncm2/ncm2-ultisnips'
+" Plug 'hrsh7th/cmp-nvim-lsp'
+" Plug 'hrsh7th/cmp-buffer'
+" Plug 'hrsh7th/cmp-path'
+" Plug 'hrsh7th/cmp-cmdline'
+" Plug 'hrsh7th/cmp-git'
+" Plug 'hrsh7th/nvim-cmp'
+
 Plug 'SirVer/ultisnips'
-" Plug 'ncm2/ncm2-pyclang'
-" Plug 'ncm2/ncm2-jedi'
+" Plug 'quangnguyen30192/cmp-nvim-ultisnips'
 
 Plug 'wellle/tmux-complete.vim'
 
@@ -117,43 +109,7 @@ call plug#end()
 if has('termguicolors')
     set termguicolors
 endif
-" set background=dark
-" colorscheme space-nvim
-" colorscheme material
-" colorscheme neon
-" let g:material_style = 'palenight'
-" let g:neon_style = 'light'
-"
-set background=light
-lua << EOF
--- colorscheme
-vim.g.everforest_background = 'hard'
-vim.cmd[[colorscheme everforest]]
-
--- gitsigns
-require('gitsigns').setup {
-signs = {
-    add          = {hl = 'GitSignsAdd'   , text = '│', numhl='GitSignsAddNr'   , linehl='GitSignsAddLn'},
-    change       = {hl = 'GitSignsChange', text = '│', numhl='GitSignsChangeNr', linehl='GitSignsChangeLn'},
-    delete       = {hl = 'GitSignsDelete', text = '_', numhl='GitSignsDeleteNr', linehl='GitSignsDeleteLn'},
-    topdelete    = {hl = 'GitSignsDelete', text = '‾', numhl='GitSignsDeleteNr', linehl='GitSignsDeleteLn'},
-    changedelete = {hl = 'GitSignsChange', text = '~', numhl='GitSignsChangeNr', linehl='GitSignsChangeLn'},
-  }
-}
--- lualine
-require('lualine').setup {
-options = {
-    theme = 'everforest'
-}
-}
--- bufferline
-require('bufferline').setup {
-options = {
-    buffer_close_icon = " ",
-    always_show_bufferline = false
-}
-}
-EOF
+lua require('config/theme')
 " }}}
 " {{{ misc settings
 " leader to space
@@ -240,15 +196,21 @@ if has("syntax")
 endif
 " }}}
 " {{{ misc keybindings
-nnoremap <silent> <C-p> :Files<CR>
-nnoremap <silent> <C-o> :Buffers<CR>
-nnoremap <silent> <C-i> :Rg<CR>
+" nnoremap <silent> <C-p> :Files<CR>
+" nnoremap <silent> <C-o> :Buffers<CR>
+" nnoremap <silent> <C-i> :Rg<CR>
 " insert 80 dashes
 nnoremap <leader>-- A<space><Esc>80A-<Esc>d80<bar>
 nnoremap <leader>== A<space><Esc>80A=<Esc>d80<bar>
 
 nnoremap <silent> <leader>ws :FixWhitespace<CR>
 nnoremap <leader>af :Autoformat<CR>
+
+nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
+nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
+nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
+nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
+
 " }}}
 " {{{ splits
 " easier navigation between splits
@@ -296,109 +258,34 @@ if has("folding")
     augroup END
 end
 " }}}
-" {{{ language client
-
-set hidden " required for renaming, etc.
-" nvim 0.5.0 specific TODO alternatives for legacy?
-" treesitter/lsp/etc lua setup
-lua <<EOF
--- treesitter
-local treesitter = require'nvim-treesitter.configs'
-treesitter.setup {
-    -- indent = { enable = true },
-    highlight = { enable = true }
-}
-
--- language server configuration
--- lsp status won't work idk why
--- local lsp_status = require'lsp-status'
--- lsp_status.register_progress()
-local lspconfig = require'lspconfig'
-
-local on_attach = function(client, bufnr)
-    local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-    local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
-
-    -- lsp_status.on_attach(client)
-
-    -- completion triggered by <c-x><c-o>
-    buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
-
-    -- mappings
-    local opts = { noremap=true, silent=true }
-
-    buf_set_keymap('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-    buf_set_keymap('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-    buf_set_keymap('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    buf_set_keymap('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-end
-
-lspconfig.ccls.setup {
-    on_attach = on_attach,
-    root_dir = lspconfig.util.root_pattern('compile_commands.json', 'build/compile_commands.json', '.project'),
-    init_options = {
-        cacheDirectory = "~/.ccls-cache";
-    }
-}
-lspconfig.pyright.setup {
-    on_attach = on_attach
-}
-
-
--- lsputil bindings
--- vim.lsp.handlers['textDocument/codeAction'] = require'lsputil.codeAction'.code_action_handler
--- vim.lsp.handlers['textDocument/references'] = require'lsputil.locations'.references_handler
--- vim.lsp.handlers['textDocument/definition'] = require'lsputil.locations'.definition_handler
--- vim.lsp.handlers['textDocument/declaration'] = require'lsputil.locations'.declaration_handler
--- vim.lsp.handlers['textDocument/typeDefinition'] = require'lsputil.locations'.typeDefinition_handler
--- vim.lsp.handlers['textDocument/implementation'] = require'lsputil.locations'.implementation_handler
--- vim.lsp.handlers['textDocument/documentSymbol'] = require'lsputil.symbols'.document_handler
--- vim.lsp.handlers['workspace/symbol'] = require'lsputil.symbols'.workspace_handler
-
--- trouble.nvim
--- require("trouble").setup {
-    -- bla
--- }
-EOF
-
-" }}}
 " {{{ completion, snippets
-set completeopt=noinsert,menuone,noselect
+set completeopt=menu,menuone,noselect
+" set completeopt=noinsert,menuone,noselect
+let g:coq_settings = { 'auto_start': 'shut-up', 'keymap.jump_to_mark': '<C-n>' }
+lua require('config/completion')
 
 " completion-nvim
 " <Tab> and <S/Tab> to navigate popup
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-n>" : "\<S-Tab>"
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+" inoremap <expr> <S-Tab> pumvisible() ? "\<C-n>" : "\<S-Tab>"
 
-set shortmess+=c
+" set shortmess+=c
 
 let g:completion_enable_snippet = 'UltiSnips'
 
-" ncm2
-" autocmd BufEnter * call ncm2#enable_for_buffer()
-
-" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-
-" " ncm2-pyclang
-" let g:ncm2_pyclang#library_path = '/usr/lib/llvm-10/lib'
-" let g:ncm2_pyclang#database_path = [
-"             \ 'compile_commands.json',
-"             \ '../compile_commands.json',
-"             \ 'build/compile_commands.json',
-"             \ '../build/compile_commands.json'
-"             \ ]
-" " ncm2-ultisnips
-" inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
+" " inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
 let g:UltiSnipsExpandTrigger="<tab>"
 let g:UltiSnipsJumpForwardTrigger = "<c-j>"
 let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
 let g:UltiSnipsRemoveSelectModeMappings = 0
 
 let g:UltiSnipsSnippetDirectories=['customsnips']
-" call deoplete#custom#var('omni', 'input_patterns', {
-"             \ 'cpp': g:cpp#re#deoplete
-"             \})
+" }}}
+" {{{ language client
 
+set hidden " required for renaming, etc.
+" treesitter/lsp/etc lua setup
+lua require('config/lsp')
 " }}}
 " {{{ tmux related
 " 1 - write current buffer if changed, 2 - :wa
@@ -426,23 +313,6 @@ if has("autocmd")
     augroup json_foldlevel
         autocmd!
         autocmd BufRead,BufNewFile *.json set foldlevelstart=99
-    augroup END
-endif
-
-" alternate-lite for configured files (*.cpp.in)
-call lh#alternate#register_extension('g', 'h.in', ['cpp.in'])
-call lh#alternate#register_extension('g', 'cpp.in', ['h.in'])
-let g:alternates.fts.cpp += ['cpp.in', 'h.in']
-
-" structure:
-"  <libname>
-"     +-- src/ -> source files
-"     +-- include/<libname>/ -> header files
-if has("autocmd")
-    augroup alternate-searchpath
-        autocmd!
-        autocmd BufRead,BufNewFile *.h let g:alternates.searchpath = 'reg:|include/.\+$|src|'
-        autocmd BufRead,BufNewFile *.cpp let g:alternates.searchpath = 'reg:|\([^/]\+\)/src|\1/include/\1||'
     augroup END
 endif
 " }}}
