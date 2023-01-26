@@ -35,7 +35,6 @@ end
 -- on_attach to be called for cpp LS, so cpp init stuff goes here
 local on_attach_lsp = function(client, bufnr)
     navic.attach(client, bufnr)
-    aerial.on_attach(client, bufnr)
     set_alternate_commands(bufnr)
 
     -- mappings
@@ -66,20 +65,28 @@ local on_attach_lsp = function(client, bufnr)
     buf_set_keymap('n', '<leader>ab', '<cmd>AerialToggle!<CR>', opts)
 end
 
-local coq = require('coq')
+-- local coq = require('coq')
 
 -- lspconfig.clangd.setup
 -- called by clangd_extensions below
 
-lspconfig.cmake.setup{}
-lspconfig.pyright.setup(coq.lsp_ensure_capabilities({
-    on_attach = on_attach_lsp
-}))
+-- lspconfig.cmake.setup{}
+local util = require("lspconfig/util")
+lspconfig.pyright.setup{
+    on_attach = on_attach_lsp,
+    root_dir = function(fname)
+        return util.root_pattern( ".git")(fname) or util.path.dirname(fname)
+    end
+}
 
 local clangd_extensions = require('clangd_extensions')
+local cmp_lsp = require('cmp_nvim_lsp')
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = cmp_lsp.default_capabilities(capabilities)
 
 clangd_extensions.setup({
-    server = coq.lsp_ensure_capabilities({
+    server = ({
+        capabilities = capabilities,
         on_attach = on_attach_lsp,
         root_dir = lspconfig.util.root_pattern('compile_commands.json',
         'build/compile_commands.json',
@@ -158,5 +165,15 @@ dap.configurations.cpp = {
 -- :lua require'dap'.repl.open()
 
 -- telescope
--- local telescope = require'telescope'
--- telescope.load_extension('fzy_native')
+local telescope = require'telescope'
+telescope.setup {
+    extensions = {
+        fzf = {
+            fuzzy = true,
+            override_generic_sorter = true,
+            override_file_sorter = true,
+            case_mode = "smart_case"
+        }
+    }
+}
+-- telescope.load_extension('fzf_native')

@@ -9,9 +9,9 @@ filetype indent plugin on
 " {{{ attempt plugged autoinstall
 " TODO doesn't work
 " if empty(glob('~/.vim/autoload/plug.vim))
-" silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-"  \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim autocmd
-" VimEnter * PlugInstall --sync | source $MYVIMRC
+" silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+" https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+"    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 " endif
 " }}}
 " {{{ plugins
@@ -23,12 +23,16 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-unimpaired'
 Plug 'tpope/vim-commentary'
-Plug 'nvim-lua/plenary.nvim' | Plug 'lewis6991/gitsigns.nvim'
+
+Plug 'nvim-lua/plenary.nvim'
+
+Plug 'lewis6991/gitsigns.nvim'
 
 
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 " Plug 'junegunn/fzf.vim'
-Plug 'nvim-lua/plenary.nvim' | Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzf-native.nvim', { 'do': 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
 
 " themes
 Plug 'marko-cerovac/material.nvim'
@@ -82,19 +86,22 @@ Plug 'folke/trouble.nvim'
 
 " completion
 
-Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
-Plug 'ms-jpq/coq.artifacts', {'branch': 'coq'}
-Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
+" Plug 'ms-jpq/coq_nvim', {'branch': 'coq'}
+" Plug 'ms-jpq/coq.artifacts', {'branch': 'coq'}
+" Plug 'ms-jpq/coq.thirdparty', {'branch': '3p'}
 
-" Plug 'hrsh7th/cmp-nvim-lsp'
-" Plug 'hrsh7th/cmp-buffer'
-" Plug 'hrsh7th/cmp-path'
-" Plug 'hrsh7th/cmp-cmdline'
-" Plug 'hrsh7th/cmp-git'
-" Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'hrsh7th/cmp-cmdline'
+Plug 'hrsh7th/cmp-git'
+Plug 'hrsh7th/nvim-cmp'
 
-Plug 'SirVer/ultisnips'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'saadparwaiz1/cmp_luasnip'
+" Plug 'SirVer/ultisnips'
 " Plug 'quangnguyen30192/cmp-nvim-ultisnips'
+Plug 'honza/vim-snippets'
 
 Plug 'wellle/tmux-complete.vim'
 
@@ -261,7 +268,7 @@ end
 " {{{ completion, snippets
 set completeopt=menu,menuone,noselect
 " set completeopt=noinsert,menuone,noselect
-let g:coq_settings = { 'auto_start': 'shut-up', 'keymap.jump_to_mark': '<C-n>' }
+" let g:coq_settings = { 'auto_start': 'shut-up', 'keymap.jump_to_mark': '<C-n>' }
 lua require('config/completion')
 
 " completion-nvim
@@ -271,15 +278,15 @@ lua require('config/completion')
 
 " set shortmess+=c
 
-let g:completion_enable_snippet = 'UltiSnips'
+" let g:completion_enable_snippet = 'UltiSnips'
 
-" " inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
-let g:UltiSnipsExpandTrigger="<tab>"
-let g:UltiSnipsJumpForwardTrigger = "<c-j>"
-let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
-let g:UltiSnipsRemoveSelectModeMappings = 0
+" " " inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
+" let g:UltiSnipsExpandTrigger="<tab>"
+" let g:UltiSnipsJumpForwardTrigger = "<c-j>"
+" let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
+" let g:UltiSnipsRemoveSelectModeMappings = 0
 
-let g:UltiSnipsSnippetDirectories=['customsnips']
+" let g:UltiSnipsSnippetDirectories=['customsnips']
 " }}}
 " {{{ language client
 

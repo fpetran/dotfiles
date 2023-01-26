@@ -1,0 +1,46 @@
+snippet copy "KEO Copyright"
+	/*
+	 *     Copyright KEO GmbH `strftime("%Y")` - All rights reserved!
+	 *
+	 *     This software is protected by the inclusion of the above copyright notice.
+	 *     This software may not be provided or otherwise made available to, or used
+	 *     by, any other person. No title to or ownership of the software is hereby
+	 *     transferred. The information contained in this document is considered the
+	 *     @b confidential and @b proprietary information of KEO GmbH
+	 *     and may not be disclosed or discussed with anyone who is not employed by
+	 *     KEO GmbH, unless the individual or company
+	 *     - has an express need to know such information, and
+	 *     - disclosure of information is subject to the terms of a duly
+	 *     executed "Confidentiality and Non-Disclosure Agreement" between
+	 *     KEO GmbH and the individual or company.
+	 */
+	$0
+
+snippet headers "KEO header template"
+	/* ****************************************************************************** *
+	 *  standard header files                                                         *
+	 * ****************************************************************************** */
+
+	/* ****************************************************************************** *
+	 * KEO header files                                                               *
+	 * ****************************************************************************** */
+
+	/* ****************************************************************************** *
+	 *  project header files                                                          *
+	 * ****************************************************************************** */
+
+	/* ****************************************************************************** *
+	 *  types                                                                         *
+	 * ****************************************************************************** */
+
+	/* ****************************************************************************** *
+	 *  definition                                                                    *
+	 * ****************************************************************************** */
+	 $0
+
+snippet guard "Include Guard"
+	 #ifndef `toupper(split(expand('%:p:h'), '/')[-3])`_`toupper(split(expand('%:p:h'), '/')[-2])`_`toupper(split(expand('%:p:h'), '/')[-1])`_`toupper(expand('%:r'))`_H_
+	 #define `toupper(split(expand('%:p:h'), '/')[-3])`_`toupper(split(expand('%:p:h'), '/')[-2])`_`toupper(split(expand('%:p:h'), '/')[-1])`_`toupper(expand('%:r'))`_H_
+	 $0
+	 #endif // `toupper(split(expand('%:p:h'), '/')[-3])`_`toupper(split(expand('%:p:h'), '/')[-2])`_`toupper(split(expand('%:p:h'), '/')[-1])`_`toupper(expand('%:r'))`_H_
+

@@ -140,3 +140,5 @@ make() {
 reset_dns() {
     sudo resolvectl dns enp0s3 172.18.10.1
 }
+
+alias keo_haste="HASTE_SERVER=http://sl-vm-keo-05.local.keo-connectivity.de:7777/ haste"
