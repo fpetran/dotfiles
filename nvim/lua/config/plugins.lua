@@ -1,13 +1,19 @@
 -- packer-nvim
 
 -- attempt bootstrap if necessary
-local fn = vim.fn
-local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
-if fn.empty(fn.glob(install_path)) > 0 then
-    packer_bootstrap = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer/nvim', install_path})
+local ensure_packer = function()
+    local fn = vim.fn
+    local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
+    local packer_git = 'https://github.com/wbthomason/packer.nvim'
+    if fn.empty(fn.glob(install_path)) > 0 then
+        fn.system({'git', 'clone', '--depth', '1', packer_git, install_path})
+        vim.cmd [[packadd packer.nvim]]
+        return true
+    end
+    return false
 end
 
-vim.cmd [[packadd packer.nvim]]
+local packer_bootstrap = ensure_packer()
 
 vim.cmd([[
     augroup packer_user_config
@@ -16,7 +22,7 @@ vim.cmd([[
     augroup end
 ]])
 
-return require('packer').startup(function()
+return require('packer').startup(function(use)
     -- packer itself
     use 'wbthomason/packer.nvim'
 
@@ -24,28 +30,21 @@ return require('packer').startup(function()
     use 'tpope/vim-surround'
     use 'tpope/vim-repeat'
     use 'tpope/vim-unimpaired'
-    use 'tpope/vim-commentary'
+
+    -- use 'tpope/vim-commentary'
+    use {
+        'numToStr/Comment.nvim',
+        config = function() require'Comment'.setup() end
+    }
+
+    use 'tpope/vim-obsession'
     use {
         'lewis6991/gitsigns.nvim', requires = { 'nvim-lua/plenary.nvim' },
         config = function() require'gitsigns'.setup() end
     }
 
-    -- use {
-    --     'junegunn/fzf', run = './install --all'
-    -- }
-    use {
-        'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' }
-    }
-
     -- themes
-    use 'marko-cerovac/material.nvim'
-    use 'Th3Whit3Wolf/space-nvim'
-    use 'tanvirtin/monokai.nvim'
-    use 'Iron-E/nvim-highlite'
-    use 'rafamadriz/neon'
-    use 'Th3Whit3Wolf/onebuddy'
-    use 'sainnhe/everforest'
-    use 'sainnhe/edge'
+    use 'arcticicestudio/nord-vim'
 
     -- status and buffer bars
     use 'hoob3rt/lualine.nvim'
@@ -63,10 +62,6 @@ return require('packer').startup(function()
     -- misc specific
     use 'elzr/vim-json'
     use 'lervag/vimtex'
-    use 'Glench/Vim-Jinja2-Syntax'
-    use {
-        'inkarkat/vim-SyntaxRange', requires = { 'inkarkat/vim-ingo-library' }
-    }
     use 'folke/which-key.nvim'
     use 'famiu/bufdelete.nvim'
 
@@ -85,26 +80,42 @@ return require('packer').startup(function()
     use 'p00f/clangd_extensions.nvim'
 
     use 'mfussenegger/nvim-dap'
+    use 'rcarriga/nvim-dap-ui'
     use 'stevearc/aerial.nvim'
     use 'SmiteshP/nvim-navic'
+
+    use {
+        'williamboman/mason.nvim', run = ':MasonUpdate'
+    }
+    use 'williamboman/mason-lspconfig.nvim'
+
+    use 'folke/neodev.nvim'
     use 'folke/trouble.nvim'
 
     -- completion
+    use 'hrsh7th/cmp-nvim-lsp'
+    use 'hrsh7th/cmp-buffer'
+    use 'hrsh7th/cmp-path'
+    use 'hrsh7th/cmp-cmdline'
+    use 'hrsh7th/cmp-git'
+    use 'hrsh7th/nvim-cmp'
 
-    use {
-        'ms-jpq/coq_nvim', branch = 'coq'
-    }
-    -- use {
-    --     'ms-jpq/coq.artifacts', branch = 'coq'
-    -- }
-    use {
-        'ms-jpq/coq.thirdparty', branch = '3p'
-    }
-    use 'SirVer/ultisnips'
+    use 'L3MON4D3/LuaSnip'
+    use 'saadparwaiz1/cmp_luasnip'
+    use 'honza/vim-snippets'
 
     use 'wellle/tmux-complete.vim'
 
+    use {
+        'junegunn/fzf', dir = '~/.fzf', run = './install --all'
+    }
+    use {
+        'nvim-telescope/telescope.nvim', requires = { 'nvim-lua/plenary.nvim' }
+    }
+    use 'nvim-telescope/telescope-dap.nvim'
+
+
     if packer_bootstrap then
-        require'packer'.sync()
+        require('packer').sync()
     end
 end)
