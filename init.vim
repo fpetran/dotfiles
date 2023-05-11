@@ -111,6 +111,8 @@ nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
 nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
 nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
 
+nnoremap <leader>xx <cmd>TroubleToggle<cr>
+
 " }}}
 " {{{ splits
 " easier navigation between splits
@@ -147,7 +149,7 @@ if has("folding")
     set foldenable
     augroup cpp_fold
         au!
-        autocmd BufRead,BufNewFile *.h set foldmethod=marker
+        autocmd BufRead,BufNewFile *.h,*.hxx set foldmethod=marker
                     \| set foldmarker=/**,*/
                     \| set foldtext=CppDoxyFoldText()
                     \| silent g/\/\*\*/foldc
@@ -160,29 +162,9 @@ end
 " }}}
 " {{{ completion, snippets
 set completeopt=menu,menuone,noselect
-" set completeopt=noinsert,menuone,noselect
-" let g:coq_settings = { 'auto_start': 'shut-up', 'keymap.jump_to_mark': '<C-n>' }
 lua require('config/completion')
-
-" completion-nvim
-" <Tab> and <S/Tab> to navigate popup
-" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-" inoremap <expr> <S-Tab> pumvisible() ? "\<C-n>" : "\<S-Tab>"
-
-" set shortmess+=c
-
-" let g:completion_enable_snippet = 'UltiSnips'
-
-" " " inoremap <silent> <expr> <CR> ncm2_ultisnips#expand_or("\<CR>", 'n')
-" let g:UltiSnipsExpandTrigger="<tab>"
-" let g:UltiSnipsJumpForwardTrigger = "<c-j>"
-" let g:UltiSnipsJumpBackwardTrigger = "<c-k>"
-" let g:UltiSnipsRemoveSelectModeMappings = 0
-
-" let g:UltiSnipsSnippetDirectories=['customsnips']
 " }}}
 " {{{ language client
-
 set hidden " required for renaming, etc.
 " treesitter/lsp/etc lua setup
 lua require('config/lsp')
@@ -198,14 +180,10 @@ let g:tex_flavor = 'latex'
 " {{{ c++ specific
 " TODO put this in a filetype
 if has("autocmd")
-    autocmd FileType cmake setlocal commentstring=#\ %s
     augroup cpp_stuff
         autocmd!
-        autocmd BufRead,BufNewFile *.h,*.cpp setlocal commentstring=//\ %s " use // for commentary
-        autocmd BufRead,BufNewFile *.h,*.cpp set colorcolumn=120          " highlight column
-        autocmd BufRead,BufNewFile *.h,*.cpp set matchpairs+=<:>        " use <> for bracket matching (for templates)
-        " autocmd BufRead,BufNewFile *.h,*.cpp,*.dox set filetype=cpp.doxygen    " set doxygen subtype
-        " autocmd BufRead,BufNewFile *.template.h,*.template.cpp set filetype=jinja.cpp
+        autocmd BufRead,BufNewFile *.h,*.hxx,*.cpp,*.cxx set colorcolumn=120          " highlight column
+        autocmd BufRead,BufNewFile *.h,*.hxx,*.cpp,*.cxx set matchpairs+=<:>        " use <> for bracket matching (for templates)
     augroup END
 endif
 
