@@ -1,6 +1,6 @@
 -- colorscheme
 -- vim.g.everforest_background = 'hard'
-vim.cmd[[colorscheme edge]]
+vim.cmd[[colorscheme nord]]
 
 -- gitsigns
 require('gitsigns').setup {
@@ -16,7 +16,7 @@ require('gitsigns').setup {
 local navic = require'nvim-navic'
 require('lualine').setup {
     options = {
-        theme = 'edge'
+        theme = 'nord'
     },
     sections = {
         lualine_a = {'mode'},
