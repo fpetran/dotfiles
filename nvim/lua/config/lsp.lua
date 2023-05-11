@@ -1,3 +1,5 @@
+require'mason'.setup{}
+require'mason-lspconfig'.setup{}
 local lspconfig = require'lspconfig'
 local treesitter = require'nvim-treesitter.configs'
 local aerial = require'aerial'
@@ -34,43 +36,73 @@ end
 
 -- on_attach to be called for cpp LS, so cpp init stuff goes here
 local on_attach_lsp = function(client, bufnr)
+    -- mappings
+    local opts = { noremap=true, silent=false }
+    local function buf_set_keymap(mode, key, map) vim.api.nvim_buf_set_keymap(bufnr, mode, key, map, opts) end
+    -- lsp
+    buf_set_keymap('n', '<leader>ld', '<cmd>lua vim.lsp.buf.declaration()<CR>')
+    buf_set_keymap('n', '<leader>li', '<cmd>lua vim.lsp.buf.definition()<CR>')
+    buf_set_keymap('n', '<leader>lh', '<cmd>lua vim.lsp.buf.hover()<CR>')
+    buf_set_keymap('n', '<leader>lm', '<cmd>lua vim.lsp.buf.implementation()<CR>')
+    buf_set_keymap('n', '<leader>lr', '<cmd>lua vim.lsp.buf.references()<CR>')
+    buf_set_keymap('n', '<leader>lt', '<cmd>lua vim.lsp.buf.type_definition()<CR>')
+
+    -- buf_set_keymap('n', '<leader>lic', '<cmd>lua vim.lsp.buf.incoming_calls()<CR>')
+    -- buf_set_keymap('n', '<leader>loc', '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>')
+
+    buf_set_keymap('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
+    buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>')
+
+    -- fugitive
+    buf_set_keymap('n', '<leader>gb', '<cmd>Git blame<CR>')
+    buf_set_keymap('n', '<leader>gg', '<cmd>Git<CR>')
+    buf_set_keymap('n', '<leader>gc', '<cmd>Git commit<CR>')
+    buf_set_keymap('n', '<leader>gr', '<cmd>Git rebase -i<CR>')
+
+    -- aerial
+    buf_set_keymap('n', '<leader>aa', '<cmd>AerialToggle<CR>')
+    buf_set_keymap('n', '<leader>ab', '<cmd>AerialToggle!<CR>')
+
+    -- dap ui
+    buf_set_keymap('n', '<leader>duo', '<cmd>lua require"dapui".open()<CR>')
+    buf_set_keymap('n', '<leader>duc', '<cmd>lua require"dapui".close()<CR>')
+
+    -- dap
+    buf_set_keymap('n', '<leader>db', '<cmd>lua require"dap".toggle_breakpoint()<CR>')
+    buf_set_keymap('n', '<leader>dc', '<cmd>lua require"dap".continue()<CR>')
+    buf_set_keymap('n', '<leader>dn', '<cmd>lua require"dap".step_over()<CR>')
+    buf_set_keymap('n', '<leader>ds', '<cmd>lua require"dap".step_into()<CR>')
+end
+
+local on_attach_lsp_cpp = function(client, bufnr)
     navic.attach(client, bufnr)
     set_alternate_commands(bufnr)
 
-    -- mappings
-    local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-    local opts = { noremap=true, silent=false }
-    -- lsp
-    buf_set_keymap('n', '<leader>ld', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-    buf_set_keymap('n', '<leader>li', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
-    buf_set_keymap('n', '<leader>lh', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    buf_set_keymap('n', '<leader>lm', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-    buf_set_keymap('n', '<leader>lr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-    buf_set_keymap('n', '<leader>lt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
-
-    -- buf_set_keymap('n', '<leader>lic', '<cmd>lua vim.lsp.buf.incoming_calls()<CR>', opts)
-    -- buf_set_keymap('n', '<leader>loc', '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>', opts)
-
-    buf_set_keymap('n', '<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
-    buf_set_keymap('n', '<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-
-    -- fugitive
-    buf_set_keymap('n', '<leader>gb', '<cmd>Git blame<CR>', opts)
-    buf_set_keymap('n', '<leader>gg', '<cmd>Git<CR>', opts)
-    buf_set_keymap('n', '<leader>gc', '<cmd>Git commit<CR>', opts)
-    buf_set_keymap('n', '<leader>gr', '<cmd>Git rebase -i<CR>', opts)
-
-    -- aerial
-    buf_set_keymap('n', '<leader>aa', '<cmd>AerialToggle<CR>', opts)
-    buf_set_keymap('n', '<leader>ab', '<cmd>AerialToggle!<CR>', opts)
+    on_attach_lsp(client, bufnr)
 end
 
--- local coq = require('coq')
+require'neodev'.setup{}
+lspconfig.lua_ls.setup({
+    library = { plugins = { "nvim-dap-ui" }, types = true },
+    settings = {
+        Lua = {
+            completion = {
+                callSnippet = "Replace"
+            }
+        }
+    }
+})
 
--- lspconfig.clangd.setup
--- called by clangd_extensions below
+lspconfig.cmake.setup{
+    on_attach = on_attach_lsp
+}
 
--- lspconfig.cmake.setup{}
+lspconfig.bashls.setup{
+    on_attach = on_attach_lsp
+}
+
+lspconfig.ruby_ls.setup{}
+
 local util = require("lspconfig/util")
 lspconfig.pyright.setup{
     on_attach = on_attach_lsp,
@@ -87,18 +119,16 @@ capabilities = cmp_lsp.default_capabilities(capabilities)
 clangd_extensions.setup({
     server = ({
         capabilities = capabilities,
-        on_attach = on_attach_lsp,
+        on_attach = on_attach_lsp_cpp,
         root_dir = lspconfig.util.root_pattern('compile_commands.json',
         'build/compile_commands.json',
-        '.project'),
+        '.clangd'),
         cmd = {
-            "clangd-12",
+            "clangd",
             "--background-index",
-            "-j=2",
-            -- "--inlay-hints",
+            "-j=8",
             "--completion-style=detailed",
-            "--header-insertion=never",
-            "--clang-tidy"
+            "--header-insertion=never"
         }
     }),
     extensions = {
@@ -107,8 +137,9 @@ clangd_extensions.setup({
             only_current_line = false,
             only_current_line_autocmd = "CursorHold",
             show_parameter_hints = true,
-            parameter_hints_prefix = "<- ",
-            other_hints_prefix = "=> ",
+            parameter_hints_prefix = " ",
+            -- other_hints_prefix = "󰞘 ",
+            other_hints_prefix = "󰧂 ",
             max_len_alight = false,
             max_len_align_padding = 1,
             right_alight = false,
