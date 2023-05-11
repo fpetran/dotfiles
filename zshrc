@@ -1,16 +1,33 @@
 # vim: fdm=marker
-
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+# {{{ zcomet
+if [[ ! -f ${ZDOTDIR:-${HOME}}/.zcomet/bin/zcomet.zsh ]]; then
+    command git clone https://github.com/agkozak/zcomet.git ${ZDOTDIR:-${HOME}}/.zcomet/bin
+fi
+source ${ZDOTDIR:-${HOME}}/.zcomet/bin/zcomet.zsh
 
-# autoload -Uz promptinit
-# promptinit
-# prompt adam1
+zcomet load romkatv/powerlevel10k #, as:theme, depth:1
 
+zcomet load junegunn/fzf shell completion.zsh key-bindings.zsh
+(( ${+commands[fzf]} )) || ~[fzf]/install --bin
+
+zcomet load joshskidmore/zsh-fzf-history-search
+zcomet load ael-code/zsh-colored-man-pages
+zcomet load zpm-zsh/material-colors
+zcomet load zpm-zsh/ls
+zcomet load jsahlen/tmux-vim-integration.plugin.zsh
+
+zcomet load zsh-users/zsh-syntax-highlighting
+zcomet load zsh-users/zsh-autosuggestions
+
+zcomet compinit
+# }}}
+# {{{ general settings
 setopt histignorealldups sharehistory
 setopt autocd
 
@@ -22,7 +39,7 @@ export LESS='-R'
 HISTSIZE=1000
 SAVEHIST=1000
 HISTFILE=~/.zsh_history
-
+# }}}
 # {{{ completion
 # Use modern completion system
 autoload -Uz compinit
@@ -46,71 +63,15 @@ zstyle ':completion:*' verbose true
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 # }}}
-# {{{ plugins
-# [[ ! -d ${HOME}/.zgen ]] && git clone https://github.com/tarjoilija/zgen.git ${HOME}/.zgen
-# source "${HOME}/.zgen/zgen.zsh"
-# if ! zgen saved; then
-#     zgen load zsh-users/zsh-syntax-highlighting
-#     zgen load ael-code/zsh-colored-man-pages
-#     zgen load rjcoelho/zsh-dircolors
-
-#     zgen load zsh-users/zsh-history-substring-search
-#     zgen load junegunn/fzf
-
-#     zgen load romkatv/powerlevel10k powerlevel10k
-
-#     zgen save
-# fi
-
-[[ ! -d ~/.zplug ]] && git clone https://github.com/b4b4r07/zplug ~/.zplug
-source ~/.zplug/init.zsh
-
-zplug "romkatv/powerlevel10k", as:theme, depth:1
-
-zplug "zsh-users/zsh-history-substring-search"
-zplug "junegunn/fzf-bin", from:gh-r, as:command, rename-to:fzf
-
-zplug "ael-code/zsh-colored-man-pages"
-zplug "zdharma/fast-syntax-highlighting"
-zplug "zpm-zsh/material-colors"
-zplug "zpm-zsh/ls"
-
-zplug "jsahlen/tmux-vim-integration.plugin.zsh"
-
-# zplug "jeffreytse/zsh-vi-mode"
-
-if ! zplug check --verbose; then
-    printf "Install? [y/N]: "
-    if read -q; then
-        echo; zplug install
-    fi
-fi
-zplug load
-# }}}
-
-# FZF
+# {{{ FZF
 export FZF_DEFAULT_COMMAND="rg --files --smart-case --type-add 'idx:*.idx' -T idx -T html -T js"
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# theme
-ZSH_THEME="powerlevel10k"
+# }}}
 # {{{ aliases
 alias rscp="rsync -rah --progress"
 [[ -x $(which batcat) ]] || echo "Install 'bat' package"
 alias b=batcat
-# }}}
-# {{{ keobuilder
-function keobuilder() {
-    BS_VERSION="2.2.0-snapshot"
-    BS_TARBALL=keo_build_system-${BS_VERSION}-build.tar.gz
-    if [[ ! -e ./keo_builder.py ]]; then
-        wget http://artifactory.local.keo-connectivity.de/artifactory/native-snapshot-local/keo_build_system/${BS_VERSION:u}/${BS_TARBALL}
-        tar xzvf ${BS_TARBALL}
-        rm -f ${BS_TARBALL}
-    fi
-    ./keo_builder.py $@
-}
-# }}}
+alias bat=batcat
 # TODO ubuntu specific
 source /etc/zsh_command_not_found || echo "Install 'command-not-found' package"
 
@@ -121,24 +82,31 @@ make() {
         command make "$@"
     fi
 }
-
+# }}}
+# {{{ theme
+ZSH_THEME="powerlevel10k"
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-# POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir_writable dir vcs)
-# POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status background_jobs time)
-# POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS="jobs | wc -l"
-# POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS_BACKGROUND="yellow"
-# POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS_FOREGROUND="blue"
-# POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir_writable dir vcs)
+POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status background_jobs time)
+POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS="jobs | wc -l"
+POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS_BACKGROUND="yellow"
+POWERLEVEL9K_CUSTOM_SUSPENDED_JOBS_FOREGROUND="blue"
+POWERLEVEL9K_PROMPT_ON_NEWLINE=true
 
-# # F810
-# POWERLEVEL9K_CARRIAGE_RETURN_ICON=$'\uF810'
-# POWERLEVEL9K_MODE=nerdfont-complete
-# POWERLEVEL9K_ROOT_ICON=$'\uF09C'
-# POWERLEVEL9K_TIME_ICON=$'\uF017'
+POWERLEVEL9K_CARRIAGE_RETURN_ICON=$'\uF810'
+POWERLEVEL9K_MODE=nerdfont-complete
+POWERLEVEL9K_ROOT_ICON=$'\uF09C'
+POWERLEVEL9K_TIME_ICON=$'\uF017'
+# }}}
+alias luamake=/home/petran/src/lua-language-server/3rd/luamake/luamake
 
-reset_dns() {
-    sudo resolvectl dns enp0s3 172.18.10.1
+tvpnc_clone() {
+    if [[ -z $1 ]]; then
+        echo "Usage: tvpnc_clone REPO_NAME"
+        return 1
+    fi
+    git clone git@gitlab2.rscs.rsint.net:tvpnc/$1.git .
 }
 
-alias keo_haste="HASTE_SERVER=http://sl-vm-keo-05.local.keo-connectivity.de:7777/ haste"
+export PATH=${PATH}:/home/petran/.local/bin
