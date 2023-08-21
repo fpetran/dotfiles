@@ -55,7 +55,6 @@ return require('packer').startup(function(use)
 
     -- tmux
     use 'christoomey/vim-tmux-navigator'
-    use 'tmux-plugins/vim-tmux-focus-events'
     use 'tmux-plugins/vim-tmux'
     use 'roxma/vim-tmux-clipboard'
 

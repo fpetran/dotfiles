@@ -1,32 +1,46 @@
 " vim: fdm=marker foldlevelstart=0
+" {{{ misc settings
 set encoding=utf-8
 scriptencoding utf-8
 filetype indent plugin on
-" {{{ plugins
-lua require('config/plugins')
-" }}}
-" {{{ theme and look
+let mapleader = " "
 if has('termguicolors')
     set termguicolors
 endif
-lua require('config/theme')
-" }}}
-" {{{ misc settings
-" leader to space
-let mapleader = " "
+set shiftwidth=4
+set autoindent
+set smartindent
+set softtabstop=4
+set expandtab
+set mouse=n
+set relativenumber
+set number
+set cursorline
+set list listchars=tab:>-,trail:.,extends:>,nbsp:_
+set wildignore+=*.o,*~,*.lo,*.exe,*.com,*.pdf,*.ps,*.dvi,*.pyc
+set suffixes+=.in,.a
+set nobackup
+set nowritebackup
+set nowb
+set noswapfile
+set showcmd
+set showmatch
+set hlsearch
+set smartcase
+set maxmempattern=2000000
+set noerrorbells
+set visualbell t_vb=
+set showfulltag
+set lazyredraw
+set whichwrap+=<,>,[,]
+set splitbelow
+set splitright
 
 augroup textwidth
     autocmd!
     autocmd BufRead,BufNewFile *.h,*.cpp setlocal textwidth=120
 augroup END
 set textwidth=80
-
-" tab/indentation
-set shiftwidth=4
-set autoindent
-set smartindent
-set softtabstop=4
-set expandtab
 
 augroup jump_to_last_edited
     autocmd!
@@ -40,89 +54,14 @@ augroup jump_to_last_edited
                 \ exe "normal! gg"
 augroup END
 
-" use mouse wheel for scrolling in normal mode
-set mouse=n
-" hybrid line numbering
-if v:version >= 704
-    set relativenumber
-    set number
-endif
-" cursor line
-if v:version >= 700
-    set cursorline
-endif
-
-set scrolloff=5
-
-" show tabs/trailing WS
-" TODO termencodings, gui/not gui, nbsp for version >= 700
-set list listchars=tab:>-,trail:.,extends:>,nbsp:_
-
-" wildmenu
-set wildmenu
-set wildignore+=*.o,*~,*.lo,*.exe,*.com,*.pdf,*.ps,*.dvi,*.pyc
-set suffixes+=.in,.a
-
-" misc
-set nocompatible
-set history=500
-set backspace=indent,eol,start
-
-set nobackup
-set nowritebackup
-set nowb
-set noswapfile
-
-set showcmd
-set showmatch
-set hlsearch
-set incsearch
-set smartcase
-
-set maxmempattern=2000000
-
-" set autochdir
-set autoread
-
-set noerrorbells
-set visualbell t_vb=
-
-set showfulltag
-set lazyredraw
-set whichwrap+=<,>,[,]
-
-if has("syntax")
-    syntax on
-endif
+" }}}
+" {{{ plugins
+lua require('config/lazy')
 " }}}
 " {{{ misc keybindings
-" nnoremap <silent> <C-p> :Files<CR>
-" nnoremap <silent> <C-o> :Buffers<CR>
-" nnoremap <silent> <C-i> :Rg<CR>
 " insert 80 dashes
 nnoremap <leader>-- A<space><Esc>80A-<Esc>d80<bar>
 nnoremap <leader>== A<space><Esc>80A=<Esc>d80<bar>
-
-nnoremap <silent> <leader>ws :FixWhitespace<CR>
-nnoremap <leader>af :Autoformat<CR>
-
-nnoremap <leader>ff <cmd>lua require('telescope.builtin').find_files()<cr>
-nnoremap <leader>fg <cmd>lua require('telescope.builtin').live_grep()<cr>
-nnoremap <leader>fb <cmd>lua require('telescope.builtin').buffers()<cr>
-nnoremap <leader>fh <cmd>lua require('telescope.builtin').help_tags()<cr>
-
-nnoremap <leader>xx <cmd>TroubleToggle<cr>
-
-" }}}
-" {{{ splits
-" easier navigation between splits
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-nnoremap <C-H> <C-W><C-H>
-
-set splitbelow
-set splitright
 " }}}
 " {{{ folding
 
@@ -160,29 +99,17 @@ if has("folding")
     augroup END
 end
 " }}}
-" {{{ completion, snippets
-set completeopt=menu,menuone,noselect
-lua require('config/completion')
-" }}}
 " {{{ language client
 set hidden " required for renaming, etc.
 " treesitter/lsp/etc lua setup
 lua require('config/lsp')
-" }}}
-" {{{ tmux related
-" 1 - write current buffer if changed, 2 - :wa
-let g:tmux_navigator_save_on_switch = 2
-let g:tmux_navigator_disable_when_zoomed = 1
-" }}}
-" {{{ latex
-let g:tex_flavor = 'latex'
 " }}}
 " {{{ c++ specific
 " TODO put this in a filetype
 if has("autocmd")
     augroup cpp_stuff
         autocmd!
-        autocmd BufRead,BufNewFile *.h,*.hxx,*.cpp,*.cxx set colorcolumn=120          " highlight column
+        autocmd BufRead,BufNewFile *.h,*.hxx,*.cpp,*.cxx set colorcolumn=100          " highlight column
         autocmd BufRead,BufNewFile *.h,*.hxx,*.cpp,*.cxx set matchpairs+=<:>        " use <> for bracket matching (for templates)
     augroup END
 endif
