@@ -1,5 +1,6 @@
+-- vim: fdm=marker
 -- lazy plugin config
-
+-- {{{ attempt lazy install
 local lazybase = vim.fn.stdpath("data") .. "/lazy"
 local lazypath = lazybase .. "/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -13,15 +14,10 @@ if not vim.loop.fs_stat(lazypath) then
     })
 end
 vim.opt.rtp:prepend(lazypath)
+-- }}}
 vim.g.mapleader = " "
 
 local plugins = {
-    -- {
-    --     "arcticicestudio/nord-vim",
-    --     lazy = false,
-    --     priority = 1000,
-    --     config = function() vim.cmd([[colorscheme nord]]) end
-    -- },
     {
         "ellisonleao/gruvbox.nvim",
         lazy = false,
@@ -35,7 +31,7 @@ local plugins = {
         "gentoo/gentoo-syntax",
         build = "make PREFIX=" .. lazybase .. " install"
     },
-    -- statusline, bufferline
+    -- {{{ statusline, bufferline
     {
         "hoob3rt/lualine.nvim", lazy = false,
         dependencies = {
@@ -77,7 +73,8 @@ local plugins = {
             }
         }
     },
-    -- tpope stuff
+    -- }}}
+    -- {{{ tpope stuff/replacements
     { "tpope/vim-sensible" },
     {
         "kylechui/nvim-surround",
@@ -94,7 +91,8 @@ local plugins = {
         "numToStr/Comment.nvim",
         config = function() require'Comment'.setup() end
     },
-
+    -- }}}
+    -- {{{ git integration
     {
         "tpope/vim-fugitive", lazy = true,
         keys = {
@@ -120,12 +118,13 @@ local plugins = {
             }
         }
     },
+    -- }}}
     { "stevearc/dressing.nvim", event = "VeryLazy" },
     {
         "rcarriga/nvim-notify", event = "VeryLazy",
         init = function() vim.notify = require("notify") end
     },
-    -- tmux
+    -- {{{ tmux related
     {
         "christoomey/vim-tmux-navigator", lazy = false,
         init = function()
@@ -138,6 +137,7 @@ local plugins = {
     -- { "alexghergh/nvim-tmux-navigation" },
     { "tmux-plugins/vim-tmux", lazy = true, ft = "tmux" },
     { "roxma/vim-tmux-clipboard" },
+    -- }}}
 
     -- misc specific
     { "elzr/vim-json", lazy = true, ft = "json" },
@@ -145,10 +145,11 @@ local plugins = {
         "lervag/vimtex", lazy = true, ft = "tex",
         init = function() vim.g.tex_flavor = "latex" end
     },
+
     { "folke/which-key.nvim", lazy = true },
     { "famiu/bufdelete.nvim" },
 
-    -- formatting
+    -- {{{ formatting
     {
         "Chiel92/vim-autoformat", lazy = true,
         keys = {
@@ -156,6 +157,8 @@ local plugins = {
         }
     },
     { "lukas-reineke/indent-blankline.nvim" },
+    -- }}}
+    -- {{{ treesitter
     {
         "nvim-treesitter/nvim-treesitter",
         lazy = false,
@@ -182,7 +185,8 @@ local plugins = {
             }
         end
     },
-
+    -- }}}
+    -- {{{ lsp/dap/related
     { "neovim/nvim-lspconfig" },
     { "p00f/clangd_extensions.nvim" },
     { "nvim-lua/lsp-status.nvim" },
@@ -207,7 +211,7 @@ local plugins = {
         }
     },
     { "SmiteshP/nvim-navic", lazy = true },
-
+    -- }}}
     {
         "williamboman/mason.nvim", build = ":MasonUpdate",
         dependencies = {
@@ -227,7 +231,7 @@ local plugins = {
         }
     },
 
-    -- completion
+    -- {{{ completion
     {
         "hrsh7th/nvim-cmp", lazy = true,
         event = "InsertEnter",
@@ -274,12 +278,12 @@ local plugins = {
     { "saadparwaiz1/cmp_luasnip" },
 
     { "wellle/tmux-complete.vim" },
-
+    -- }}}
     {
         "junegunn/fzf", dir = "~/.fzf", build = "./install --all"
     },
 
-    -- telescope
+    -- {{{ telescope
     {
         "nvim-telescope/telescope.nvim", lazy = true,
         config = function()
@@ -325,5 +329,6 @@ local plugins = {
     {
         "nvim-telescope/telescope-media-files.nvim", lazy = true
     }
+    -- }}}
 }
 require'lazy'.setup(plugins)

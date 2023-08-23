@@ -1,3 +1,4 @@
+-- vim: fdm=marker
 -- lsp related plugin configs
 -- somewhat order dependent on the following
 
@@ -8,6 +9,7 @@ lsp_status.register_progress()
 local lspconfig = require'lspconfig'
 local navic = require'nvim-navic'
 
+-- {{{ switch_alternate
 -- switch to header with splits
 local function switch_alternate(client, bufnr, splitcmd)
     bufnr = lspconfig.util.validate_bufnr(bufnr)
@@ -34,8 +36,8 @@ local function set_alternate_commands(client, bufnr)
     vim.api.nvim_buf_create_user_command(bufnr, 'AV', function() switch_alternate(client, bufnr, "vsplit") end, {})
     vim.api.nvim_buf_create_user_command(bufnr, 'AS', function() switch_alternate(client, bufnr, "split") end, {})
 end
-
--- set lsp keymaps
+-- }}}
+-- {{{ set lsp keymaps
 local function set_lsp_keybinds(bufnr)
     local opts = { noremap=true, silent=false }
     local function buf_set_keymap(key, map) vim.api.nvim_buf_set_keymap(bufnr, 'n', key, map, opts) end
@@ -53,8 +55,8 @@ local function set_lsp_keybinds(bufnr)
     buf_set_keymap('<leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
     buf_set_keymap('<leader>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>')
 end
-
--- debug adapter (nvim-dap)
+-- }}}
+-- {{{ debug adapter (nvim-dap)
 local dap, dapui = require'dap', require'dapui'
 dapui.setup()
 dap.adapters.lldb = {
@@ -127,7 +129,8 @@ dap.configurations.cpp = {
 -- :lua require'dap'.step_into()
 -- open repl to inspect state
 -- :lua require'dap'.repl.open()
-
+-- }}}
+-- {{{ lsp on_attach functions
 -- on_attach for all lsp
 local on_attach_lsp = function(client, bufnr)
     -- mappings
@@ -139,7 +142,8 @@ local on_attach_lsp_cpp = function(client, bufnr)
     set_alternate_commands(client, bufnr)
     on_attach_lsp(client, bufnr)
 end
-
+-- }}}
+-- {{{ misc lsp configs
 lspconfig.lua_ls.setup({
     library = { plugins = { "nvim-dap-ui" }, types = true },
     settings = {
@@ -150,15 +154,12 @@ lspconfig.lua_ls.setup({
         }
     }
 })
-
 lspconfig.cmake.setup{
     on_attach = on_attach_lsp
 }
-
 lspconfig.bashls.setup{
     on_attach = on_attach_lsp
 }
-
 lspconfig.ruby_ls.setup{}
 
 local util = require("lspconfig/util")
@@ -168,7 +169,8 @@ lspconfig.pyright.setup{
         return util.root_pattern( ".git")(fname) or util.path.dirname(fname)
     end
 }
-
+-- }}}
+-- {{{ clangd lsp config
 local clangd_extensions = require('clangd_extensions')
 local cmp_lsp = require('cmp_nvim_lsp')
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -227,4 +229,4 @@ lspconfig.clangd.setup{
         "--header-insertion=iwyu"
     }
 }
-
+-- }}}
