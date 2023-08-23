@@ -3,7 +3,7 @@
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+    source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 # {{{ zcomet
 if [[ ! -f ${ZDOTDIR:-${HOME}}/.zcomet/bin/zcomet.zsh ]]; then
@@ -18,7 +18,7 @@ zcomet load junegunn/fzf shell completion.zsh key-bindings.zsh
 
 zcomet load joshskidmore/zsh-fzf-history-search
 zcomet load ael-code/zsh-colored-man-pages
-zcomet load zpm-zsh/material-colors
+zcomet load zpm-zsh/dircolors-neutral
 zcomet load zpm-zsh/ls
 zcomet load jsahlen/tmux-vim-integration.plugin.zsh
 
@@ -33,7 +33,7 @@ setopt autocd
 
 export EDITOR=vim
 export VISUAL=vim
-export LESS='-R'
+export LESS='-R -F'
 
 # Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
 HISTSIZE=1000
@@ -100,6 +100,14 @@ POWERLEVEL9K_ROOT_ICON=$'\uF09C'
 POWERLEVEL9K_TIME_ICON=$'\uF017'
 # }}}
 alias luamake=/home/petran/src/lua-language-server/3rd/luamake/luamake
+take() {
+    if [[ -z $1 ]]; then
+        echo "Make a directory and then change to it"
+        return 1
+    fi
+    mkdir -p $1
+    cd $1
+}
 
 tvpnc_clone() {
     if [[ -z $1 ]]; then
@@ -107,6 +115,18 @@ tvpnc_clone() {
         return 1
     fi
     git clone git@gitlab2.rscs.rsint.net:tvpnc/$1.git .
+}
+
+container() {
+    CONTAINER_NAME=base-devel-db
+
+    CONTAINER_RUNNING=$(podman container ls|grep ${CONTAINER_NAME})
+    [ -z "${CONTAINER_RUNNING}" ] && podman start ${CONTAINER_NAME}
+    DBUS_RUNNING=$(podman exec ${CONTAINER_NAME} ps -A|grep dbus-daemon)
+    [ -z "${DBUS_RUNNING}" ] && podman exec ${CONTAINER_NAME} \
+        dbus-daemon --config-file=/usr/share/dbus-1/system.conf --print-address
+
+    podman exec -it --workdir=$PWD ${CONTAINER_NAME} bash
 }
 
 export PATH=${PATH}:/home/petran/.local/bin
