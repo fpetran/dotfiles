@@ -1,5 +1,5 @@
 -- lazy plugin config
---
+
 local lazybase = vim.fn.stdpath("data") .. "/lazy"
 local lazypath = lazybase .. "/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -79,7 +79,12 @@ local plugins = {
     },
     -- tpope stuff
     { "tpope/vim-sensible" },
-    { "tpope/vim-surround" },
+    {
+        "kylechui/nvim-surround",
+        version = "*",
+        event = "VeryLazy",
+        config = function() require'nvim-surround'.setup() end
+    },
     {
         "tummetott/unimpaired.nvim",
         config = function() require'unimpaired'.setup() end
@@ -163,10 +168,20 @@ local plugins = {
             }
         end,
         dependencies = {
-            "nvim-treesitter/nvim-treesitter-textobjects"
+            "nvim-treesitter/nvim-treesitter-textobjects",
+            "nvim-treesitter/nvim-treesitter-context"
         }
     },
     { "nvim-treesitter/nvim-treesitter-textobjects", lazy = true },
+    {
+        "nvim-treesitter/nvim-treesitter-context",
+        lazy = true,
+        config = function()
+            require'treesitter-context'.setup{
+                multiline_threshold = 20
+            }
+        end
+    },
 
     { "neovim/nvim-lspconfig" },
     { "p00f/clangd_extensions.nvim" },
@@ -257,7 +272,6 @@ local plugins = {
         config = function() require'luasnip.loaders.from_snipmate'.lazy_load() end
     },
     { "saadparwaiz1/cmp_luasnip" },
-    -- { "honza/vim-snippets" },
 
     { "wellle/tmux-complete.vim" },
 

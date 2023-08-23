@@ -76,6 +76,7 @@ dap.adapters.cppdbg = {
 -- dap.listeners.before.event_exited["dapui_config"] = function()
 --     dapui.close()
 -- end
+
 dap.configurations.cpp = {
     {
         name = "Launch file",
@@ -175,21 +176,6 @@ capabilities = cmp_lsp.default_capabilities(capabilities)
 
 local clangd_extensions_config = {
     handlers = lsp_status.extensions.clangd.setup(),
-    server = ({
-        capabilities = capabilities,
-        on_attach = on_attach_lsp_cpp,
-        root_dir = lspconfig.util.root_pattern('compile_commands.json',
-        'build/compile_commands.json',
-        '.clangd'),
-        cmd = {
-            "clangd",
-            "--background-index",
-            "-j=8",
-            "--clang-tidy=false",
-            "--completion-style=detailed",
-            "--header-insertion=iwyu"
-        }
-    }),
     extensions = {
         autoSetHints = true,
         inlay_hints = {
@@ -221,3 +207,24 @@ local clangd_extensions_config = {
     }
 }
 clangd_extensions.setup(clangd_extensions_config)
+
+lspconfig.clangd.setup{
+    capabilities = capabilities,
+    on_attach = function(client, bufnr)
+        on_attach_lsp_cpp(client, bufnr)
+        clangd_extensions.inlay_hints.setup_autocmd()
+        clangd_extensions.inlay_hints.set_inlay_hints()
+    end,
+    root_dir = lspconfig.util.root_pattern('compile_commands.json',
+    'build/compile_commands.json',
+    '.clangd'),
+    cmd = {
+        "clangd",
+        "--background-index",
+        "-j=8",
+        "--clang-tidy=false",
+        "--completion-style=detailed",
+        "--header-insertion=iwyu"
+    }
+}
+
