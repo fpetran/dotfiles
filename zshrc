@@ -129,4 +129,8 @@ container() {
     podman exec -it --workdir=$PWD ${CONTAINER_NAME} bash
 }
 
+tvpnc_grep() {
+    rg -g '!dependencies/' -g '!local-libs/' $@
+}
+
 export PATH=${PATH}:/home/petran/.local/bin
