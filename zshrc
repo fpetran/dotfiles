@@ -114,7 +114,7 @@ tvpnc_clone() {
         echo "Usage: tvpnc_clone REPO_NAME"
         return 1
     fi
-    git clone git@gitlab2.rscs.rsint.net:tvpnc/$1.git .
+    git clone git@code.rsint.net:tvpnc/$1.git .
 }
 
 container() {
