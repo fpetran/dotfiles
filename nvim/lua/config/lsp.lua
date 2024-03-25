@@ -214,8 +214,8 @@ lspconfig.clangd.setup{
     capabilities = capabilities,
     on_attach = function(client, bufnr)
         on_attach_lsp_cpp(client, bufnr)
-        clangd_extensions.inlay_hints.setup_autocmd()
-        clangd_extensions.inlay_hints.set_inlay_hints()
+        -- clangd_extensions.inlay_hints.setup_autocmd()
+        -- clangd_extensions.inlay_hints.set_inlay_hints()
     end,
     root_dir = lspconfig.util.root_pattern('compile_commands.json',
     'build/compile_commands.json',

@@ -31,6 +31,9 @@ local plugins = {
         "gentoo/gentoo-syntax",
         build = "make PREFIX=" .. lazybase .. " install"
     },
+    {
+        "MTDL9/vim-log-highlighting"
+    },
     -- {{{ statusline, bufferline
     {
         "hoob3rt/lualine.nvim", lazy = false,
@@ -237,8 +240,8 @@ local plugins = {
         event = "InsertEnter",
         dependencies = {
             "neovim/nvim-lspconfig",
-            "L3MON4D3/LuaSnip",
-            "saadparwaiz1/cmp_luasnip",
+            -- "L3MON4D3/LuaSnip",
+            -- "saadparwaiz1/cmp_luasnip",
         },
         config = function()
             local cmp = require'cmp'
@@ -271,11 +274,11 @@ local plugins = {
     { "hrsh7th/cmp-path" },
     { "hrsh7th/cmp-cmdline" },
     { "hrsh7th/cmp-git" },
-    {
-        "L3MON4D3/LuaSnip",
-        config = function() require'luasnip.loaders.from_snipmate'.lazy_load() end
-    },
-    { "saadparwaiz1/cmp_luasnip" },
+    -- {
+    --     "L3MON4D3/LuaSnip",
+    --     config = function() require'luasnip.loaders.from_snipmate'.lazy_load() end
+    -- },
+    -- { "saadparwaiz1/cmp_luasnip" },
 
     { "wellle/tmux-complete.vim" },
     -- }}}
@@ -328,7 +331,34 @@ local plugins = {
     },
     {
         "nvim-telescope/telescope-media-files.nvim", lazy = true
-    }
+    },
     -- }}}
+    {
+        "Ostralyan/scribe.nvim", lazy = true,
+        opts = {
+            directory = '~/notes/',
+            file_ext = 'md',
+            default_file = 'scribe'
+        },
+        dependencies = { "nvim-telescope/telescope.nvim" },
+        keys = {
+            -- create/open default file
+            { "<leader>ss", "<cmd>ScribeOpen<cr>" },
+            -- create a file (name required)
+            { "<leader>so", function()
+                vim.ui.input({ prompt="Note" }, function(name)
+                                                        require("scribe").open(name)
+                                                end)
+            end },
+            -- open telescope finder
+            { "<leader>sf", "<cmd>ScribeFind<cr>" }
+        }
+    },
+    {
+        "kosayoda/nvim-lightbulb",
+        opts = {
+            autocmd = { enabled = true }
+        }
+    }
 }
 require'lazy'.setup(plugins)
