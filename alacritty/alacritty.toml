@@ -1,0 +1,38 @@
+[bell]
+animation = "EaseOutExpo"
+color = "#ffffff"
+duration = 5
+
+[font]
+size = 9.5
+
+[font.bold]
+family = "MesloLGS NF"
+style = "Bold"
+
+[font.bold_italic]
+family = "MesloLGS NF"
+style = "Bold Italic"
+
+[font.italic]
+family = "MesloLGS NF"
+style = "Italic"
+
+[font.normal]
+family = "MesloLGS NF"
+style = "Regular"
+
+[[keyboard.bindings]]
+action = "ToggleFullScreen"
+key = "F11"
+
+[shell]
+args = ["--login", "-c", "tmux attach || tmux"]
+program = "/bin/zsh"
+
+[window]
+decorations = "none"
+dynamic_title = true
+opacity = 0.8
+startup_mode = "Fullscreen"
+title = "Alacritty"
