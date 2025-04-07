@@ -160,7 +160,7 @@ lspconfig.cmake.setup{
 lspconfig.bashls.setup{
     on_attach = on_attach_lsp
 }
-lspconfig.ruby_ls.setup{}
+-- lspconfig.ruby_ls.setup{}
 
 local util = require("lspconfig/util")
 lspconfig.pyright.setup{

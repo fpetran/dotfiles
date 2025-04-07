@@ -8,7 +8,7 @@ if not vim.loop.fs_stat(lazypath) then
         "git",
         "clone",
         "--filter=blob:none",
-        "https://github.com/folke/lazy.vim.git",
+        "https://github.com/folke/lazy.nvim.git",
         "--branch=stable",
         lazypath
     })
@@ -16,6 +16,24 @@ end
 vim.opt.rtp:prepend(lazypath)
 -- }}}
 vim.g.mapleader = " "
+
+-- find projBase: first dir from left that contains a .git/
+FindBaseDir = function(startDir)
+    local path = vim.fn.split(startDir, "/")
+    local projBase = ""
+    local scan = require("plenary.scandir")
+    for _, pathPart in ipairs(path) do
+        projBase = projBase .. "/" .. pathPart
+        local content = scan.scan_dir(projBase, { hidden = true, only_dirs = true, depth = 1 })
+        for _, entry in ipairs(content) do
+            if entry:match(".git$") then
+                return projBase
+            end
+        end
+    end
+    -- default to cwd
+    return projBase
+end
 
 local plugins = {
     {
@@ -111,15 +129,6 @@ local plugins = {
         dependencies = {
             "nvim-lua/plenary.nvim"
         },
-        opts = {
-            signs = {
-                add          = {hl = "GitSignsAdd"   , text = "│", numhl="GitSignsAddNr"   , linehl="GitSignsAddLn"},
-                change       = {hl = "GitSignsChange", text = "│", numhl="GitSignsChangeNr", linehl="GitSignsChangeLn"},
-                delete       = {hl = "GitSignsDelete", text = "_", numhl="GitSignsDeleteNr", linehl="GitSignsDeleteLn"},
-                topdelete    = {hl = "GitSignsDelete", text = "‾", numhl="GitSignsDeleteNr", linehl="GitSignsDeleteLn"},
-                changedelete = {hl = "GitSignsChange", text = "~", numhl="GitSignsChangeNr", linehl="GitSignsChangeLn"},
-            }
-        }
     },
     -- }}}
     { "stevearc/dressing.nvim", event = "VeryLazy" },
@@ -159,7 +168,7 @@ local plugins = {
             { "<leader>af", ":Autoformat<CR>" }
         }
     },
-    { "lukas-reineke/indent-blankline.nvim" },
+    -- { "lukas-reineke/indent-blankline.nvim" },
     -- }}}
     -- {{{ treesitter
     {
@@ -168,10 +177,11 @@ local plugins = {
         build = ":TSUpdate",
         init = function()
             require'nvim-treesitter.configs'.setup {
-                ensure_installed = { "c", "cpp", "cmake", "lua", "vim", "vimdoc", "query", "python", "bash" },
+                ensure_installed = { "c", "cpp", "cmake", "lua", "vim", "vimdoc", "query", "python", "bash", "xml" },
                 auto_install = true,
                 highlight = { enable = true }
             }
+            vim.treesitter.language.register('xml', { 'svg', 'xslt' })
         end,
         dependencies = {
             "nvim-treesitter/nvim-treesitter-textobjects",
@@ -203,7 +213,7 @@ local plugins = {
     },
 
     { "mfussenegger/nvim-dap" },
-    { "rcarriga/nvim-dap-ui" },
+    { "rcarriga/nvim-dap-ui", dependencies = { "nvim-neotest/nvim-nio" } },
 
     {
         "stevearc/aerial.nvim", lazy = true,
@@ -282,9 +292,6 @@ local plugins = {
 
     { "wellle/tmux-complete.vim" },
     -- }}}
-    {
-        "junegunn/fzf", dir = "~/.fzf", build = "./install --all"
-    },
 
     -- {{{ telescope
     {
@@ -309,8 +316,8 @@ local plugins = {
                     }
                 }
             })
-            telescope.load_extension('media_files')
-            telescope.load_extension('fzf')
+            -- telescope.load_extension('media_files')
+            -- telescope.load_extension('fzf')
         end,
         keys = {
             { "<leader>ff", "<cmd>lua require('telescope.builtin').find_files()<cr>" },
@@ -321,17 +328,17 @@ local plugins = {
         dependencies = {
             "nvim-lua/plenary.nvim",
             -- "nvim-telescope/telescope-dap.nvim",
-            "nvim-telescope/telescope-fzf-native.nvim",
-            "nvim-telescope/telescope-media-files.nvim"
+            -- "nvim-telescope/telescope-fzf-native.nvim",
+            -- "nvim-telescope/telescope-media-files.nvim"
         }
     },
     {
         "nvim-telescope/telescope-fzf-native.nvim", lazy = true,
         build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
     },
-    {
-        "nvim-telescope/telescope-media-files.nvim", lazy = true
-    },
+    -- {
+    --     "nvim-telescope/telescope-media-files.nvim", lazy = true
+    -- },
     -- }}}
     {
         "Ostralyan/scribe.nvim", lazy = true,
@@ -355,9 +362,57 @@ local plugins = {
         }
     },
     {
-        "kosayoda/nvim-lightbulb",
+        "https://codeberg.org/esensar/nvim-dev-container",
+        dependencies = {
+            "nvim-treesitter/nvim-treesitter",
+            "nvim-lua/plenary.nvim" -- for custom config search
+        },
         opts = {
-            autocmd = { enabled = true }
+            config_search_start = function()
+                local projBase = FindBaseDir(vim.loop.cwd())
+                if vim.g.devcontainer_selected_config == nil or vim.g.devcontainer_selected_config == "" then
+                    local candidates = vim.split(
+                        vim.fn.glob(projBase .. "/.devcontainer/**/devcontainer.json"),
+                        "\n",
+                        { trimempty = true }
+                    )
+                    if #candidates < 2 then
+                        vim.g.devcontainer_selected_config = projBase
+                    else
+                        local choices = { "Select devcontainer config file to use:" }
+                        for idx, candidate in ipairs(candidates) do
+                            table.insert(choices, idx .. ". - " .. candidate)
+                        end
+                        local choice_idx = vim.fn.inputlist(choices)
+                        if choice_idx > #candidates then
+                            choice_idx = 1
+                        end
+                        vim.g.devcontainer_selected_config = string.gsub(candidates[choice_idx], "/devcontainer.json", "")
+                    end
+                end
+                return vim.g.devcontainer_selected_config
+            end,
+            workspace_folder_provider = function()
+                return FindBaseDir(vim.loop.cwd())
+            end,
+            attach_mounts = {
+                neovim_config = {
+                    enabled = true,
+                    options = { "readonly" }
+                },
+                neovim_data = {
+                    enabled = false
+                },
+                neovim_state = {
+                    enabled = false
+                }
+            },
+            autocommands = {
+                init = false,
+                clean = true,
+                update = true
+            },
+            log_level = "info"
         }
     }
 }
