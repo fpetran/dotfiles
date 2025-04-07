@@ -134,3 +134,4 @@ tvpnc_grep() {
 }
 
 export PATH=${PATH}:/home/petran/.local/bin
+export exa_params=(--icons --classify --group-directories-first --time-style=long-iso --group --color=auto)
